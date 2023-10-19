@@ -1,0 +1,4 @@
+/venv/
+/.env
+/database/progress.db
+/database/progress-database-telegram-bot-763aff6311d0.json

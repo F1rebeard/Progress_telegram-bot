@@ -1,0 +1,15 @@
+aiogram==2.25.1
+python-dotenv==0.21.0
+Brotli==1.0.9
+aiodns==3.0.0
+cchardet==2.1.7
+cffi==1.15.1
+pycares==4.2.2
+pycparser==2.21
+aioschedule
+numpy
+matplotlib
+gspread
+gspread-asyncio
+oauth2client
+mplcyberpunk
