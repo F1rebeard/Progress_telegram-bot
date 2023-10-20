@@ -44,7 +44,8 @@ main_menu_button = KeyboardButton('⏪ Главное меню')
 cancel_button = KeyboardButton('❌ Отмена')
 
 # profile_buttons
-graphic_button = KeyboardButton('📊 Твои характеристики')
+full_graphic_button = KeyboardButton('🥷🏿☯ Полная характеристика')
+base_graphic_button = KeyboardButton('🐯🐾 Базовая характеристика')
 add_profile_button = KeyboardButton('🔄 Редактировать')
 categories_button = KeyboardButton('🦄️ Категории')
 
@@ -67,7 +68,8 @@ profile_keyboard_1 = ReplyKeyboardMarkup(resize_keyboard=True,
                                          row_width=2).add(
     categories_button,
     main_menu_button,
-    graphic_button
+    base_graphic_button,
+    full_graphic_button
 )
 
 profile_keyboard_2 = ReplyKeyboardMarkup(resize_keyboard=True,
