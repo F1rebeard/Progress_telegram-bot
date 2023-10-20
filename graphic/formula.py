@@ -8,9 +8,9 @@ from graphic.сonstants import (NINETY_PERCENTS,
                                CATEGORIES_VIA_RANGES)
 
 
-async def user_info(telegram_id:int) -> (int, int):
+async def user_info(telegram_id: int) -> (int, int):
     """
-    Get user level and gender from database.
+    Get user level and gender from database by telegram id.
     :param telegram_id:
     :return:
     """
@@ -21,30 +21,39 @@ async def user_info(telegram_id:int) -> (int, int):
 
 
 async def choose_the_interval(
+        telegram_id: int,
+        minkaif_lvl_one: list[int],
+        minkaif_lvl_two: list[int],
         gender: str,
         user_level: str,
         movement_data: list) -> (int, int):
     """
-    Depending on user gender chooses correct interval for movements.
-    :param gender:
-    :param user_level:
-    :param movement_data:
+    Depending on user level and gender chooses correct interval for movements.
+    For minkaif users depends on sorted data.
+    :param telegram_id: message.from_user.id
+    :param minkaif_lvl_one: constant from constants.py
+    :param minkaif_lvl_two: constant from constants.py
+    :param gender: from database via telegram_id
+    :param user_level: from database via telegram_id
+    :param movement_data: from database via telegram_id
     :return:
     """
-    if user_level == 'Первый':
+    if user_level == 'Первый' or telegram_id in minkaif_lvl_one:
         if gender == 'Мужской':
-            # значеник 100% для парней (10 из 10)
+            # 100% value for men (10 from 10)
             one_hundred_perc = movement_data[2]
-            # значение 10% для парней (1 из 10)
+            # 10% value for men (1 from 10)
             ten_perc = movement_data[1]
             return ten_perc, one_hundred_perc
         if gender == "Женский":
-            # значеник 100% для девушек (10 из 10)
+            # 100% value for women (10 from 10)
             one_hundred_perc = movement_data[4]
-            # значение 10% для девушек (1 из 10)
+            # 100% value for women (1 from 10)
             ten_perc = movement_data[3]
             return ten_perc, one_hundred_perc
-    if user_level == 'Второй' or user_level == 'Соревнования':
+    if (user_level == 'Второй' or
+            user_level == 'Соревнования' or
+            telegram_id in minkaif_lvl_two):
         if gender == 'Мужской':
             # значеник 100% для парней (10 из 10)
             one_hundred_perc = movement_data[6]
@@ -62,7 +71,7 @@ async def choose_the_interval(
 def time_string_to_seconds(text: str) -> int or str:
     """
     Transforms string message from user like 12:22 where 12 - min and 22 - sec
-    to total seconds
+    to total seconds  for calculation.
     :param text:
     :return:
     """
