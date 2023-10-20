@@ -284,7 +284,7 @@ async def get_base_profile_data(user_id: int) -> list:
         (BASE_GYMNASTIC_RANGES,
          await db.get_user_last_gymnastics_result(user_id),
          'Гимнастика'),
-        (BASE_METCON_RANGES, await db.get_user_last_metcon_result(user_id),
+        (BASE_METCON_RANGES, await db.get_user_metcons_last_result(user_id),
          'Метконы')
     ]
     for category in user_categories_data:
@@ -293,7 +293,7 @@ async def get_base_profile_data(user_id: int) -> list:
                 telegram_id=user_id,
                 characteristics_ranges=category[0],
                 user_results=category[1],
-                category=category[3]
+                category=category[2]
             )
         )
     return base_user_profile_data
@@ -319,7 +319,7 @@ async def get_full_profile_data(user_id: int) -> list:
         (GYMNASTIC_RANGES,
          await db.get_user_last_gymnastics_result(user_id),
          'Гимнастика'),
-        (METCON_RANGES, await db.get_user_last_metcon_result(user_id),
+        (METCON_RANGES, await db.get_user_metcons_last_result(user_id),
          'Метконы')
     ]
     for category in user_categories_data:
@@ -328,7 +328,7 @@ async def get_full_profile_data(user_id: int) -> list:
                 telegram_id=user_id,
                 characteristics_ranges=category[0],
                 user_results=category[1],
-                category=category[3]
+                category=category[2]
             )
         )
     return full_user_profile_data
