@@ -92,6 +92,7 @@ subscription_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
 unfreeze_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
     unfreeze_button)
 
+
 # choose workout level inline keyboard
 def create_inline_keyboard(buttons: tuple) -> InlineKeyboardMarkup:
     """
@@ -106,6 +107,7 @@ def create_inline_keyboard(buttons: tuple) -> InlineKeyboardMarkup:
         )
     return keyboard
 
+
 def create_url_inline_keyboard(buttons: tuple) -> InlineKeyboardMarkup:
     """
     Create inline keyboard with urls and back button.
@@ -118,6 +120,7 @@ def create_url_inline_keyboard(buttons: tuple) -> InlineKeyboardMarkup:
     for text, url in buttons:
         inline_kb.row(InlineKeyboardButton(text=text, url=url))
     return inline_kb
+
 
 def get_choose_level_data(buttons: tuple) -> list:
     level_data = []
@@ -145,7 +148,7 @@ choose_levels = get_choose_level_data(CHOOSE_LEVEL_BTN)
 # inline keyboard for choosing subscription
 choose_sub = create_inline_keyboard(CHOOSE_SUBSCRIPTION)
 
-#execrsises_and_activations for user
+# exercises and activations for user
 exercises_and_activations = create_inline_keyboard(CHOSE_EXERCISE_CATEGORY)
 
 
