@@ -180,8 +180,7 @@ async def user_axis_value(telegram_id: int,
                       category: str,
                       ) -> (list or float):
     """
-    Returns value for power axis for user depending on his
-    power strength results.
+    Returns axis value for the user depending on user results.
     :param telegram_id:
     :param characteristics_ranges:
     :param category:
