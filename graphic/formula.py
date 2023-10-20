@@ -5,7 +5,20 @@ from graphic.сonstants import (NINETY_PERCENTS,
                                TEN_PERCENTS,
                                ONE_HUNDRED_PERCENTS,
                                TIME_MOVEMENTS,
-                               CATEGORIES_VIA_RANGES)
+                               MINKAIF_LVL_ONE_USERS,
+                               MINKAIF_LVL_TWO_USERS,
+                               STRENGTH_RANGES,
+                               STRENGTH_CAPACITY_RANGES,
+                               AEROBIC_RANGES,
+                               POWER_RANGES,
+                               GYMNASTIC_RANGES,
+                               METCON_RANGES,
+                               BASE_METCON_RANGES,
+                               BASE_POWER_RANGES,
+                               BASE_AEROBIC_RANGES,
+                               BASE_STRENGTH_RANGES,
+                               BASE_GYMNASTIC_RANGES,
+                               BASE_STRENGTH_CAPACITY_RANGES)
 
 
 async def user_info(telegram_id: int) -> (int, int):
@@ -175,13 +188,13 @@ async def movement_time_result_to_axis_value(one_hundred_perc: float,
 
 
 async def user_axis_value(telegram_id: int,
-                      characteristics_ranges: list,
-                      user_results: list,
-                      category: str,
-                      ) -> (list or float):
+                          characteristics_ranges: list,
+                          user_results: list,
+                          category: str) -> (list or float):
     """
     Returns axis value for the user depending on user results.
     :param telegram_id:
+    :param user_results:
     :param characteristics_ranges:
     :param category:
     :return:
@@ -200,7 +213,11 @@ async def user_axis_value(telegram_id: int,
                 ten_perc, one_hundred_perc = await choose_the_interval(
                     gender=user_bio[1],
                     user_level=user_bio[0],
-                    movement_data=movement_data)
+                    movement_data=movement_data,
+                    minkaif_lvl_one=MINKAIF_LVL_ONE_USERS,
+                    minkaif_lvl_two=MINKAIF_LVL_TWO_USERS,
+                    telegram_id=telegram_id
+                )
                 if result[0] in TIME_MOVEMENTS:
                     # перевод текс времени в секунды
                     ten_perc = time_string_to_seconds(ten_perc)
@@ -244,3 +261,74 @@ async def user_axis_value(telegram_id: int,
     else:
         axis_score = sum(movement_results) / len(movement_results)
         return round(float(axis_score), 1)
+
+
+async def get_base_profile_data(user_id: int) -> list:
+    """
+    Shows basic characteristics graph with base exercsises filled,
+    otherwise shows the list of exercsises to fill.
+    """
+    # list with result for each category
+    base_user_profile_data: list = []
+    # list for unfilled profile results
+    user_categories_data: list = [
+        (BASE_STRENGTH_RANGES, await db.get_user_last_strength_result(user_id),
+         'Cила'),
+        (BASE_POWER_RANGES, await db.get_user_last_power_result(user_id),
+         'Взрывная сила'),
+        (BASE_STRENGTH_CAPACITY_RANGES,
+         await db.get_user_last_strength_capacity_result(user_id),
+         'Cиловая выносливость'),
+        (BASE_AEROBIC_RANGES, await db.get_user_last_aerobic_result(user_id),
+         'Выносливость и эргометры'),
+        (BASE_GYMNASTIC_RANGES,
+         await db.get_user_last_gymnastics_result(user_id),
+         'Гимнастика'),
+        (BASE_METCON_RANGES, await db.get_user_last_metcon_result(user_id),
+         'Метконы')
+    ]
+    for category in user_categories_data:
+        base_user_profile_data.append(
+            await user_axis_value(
+                telegram_id=user_id,
+                characteristics_ranges=category[0],
+                user_results=category[1],
+                category=category[3]
+            )
+        )
+    return base_user_profile_data
+
+
+async def get_full_profile_data(user_id: int) -> list:
+    """
+    Shows basic characteristics graph with base exercsises filled,
+    otherwise shows the list of exercsises to fill.
+    """
+    full_user_profile_data: list = []
+    # list for unfilled profile results
+    user_categories_data: list = [
+        (STRENGTH_RANGES, await db.get_user_last_strength_result(user_id),
+         'Cила'),
+        (POWER_RANGES, await db.get_user_last_power_result(user_id),
+         'Взрывная сила'),
+        (STRENGTH_CAPACITY_RANGES,
+         await db.get_user_last_strength_capacity_result(user_id),
+         'Cиловая выносливость'),
+        (AEROBIC_RANGES, await db.get_user_last_aerobic_result(user_id),
+         'Выносливость и эргометры'),
+        (GYMNASTIC_RANGES,
+         await db.get_user_last_gymnastics_result(user_id),
+         'Гимнастика'),
+        (METCON_RANGES, await db.get_user_last_metcon_result(user_id),
+         'Метконы')
+    ]
+    for category in user_categories_data:
+        full_user_profile_data.append(
+            await user_axis_value(
+                telegram_id=user_id,
+                characteristics_ranges=category[0],
+                user_results=category[1],
+                category=category[3]
+            )
+        )
+    return full_user_profile_data
