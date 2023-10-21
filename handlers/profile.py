@@ -153,7 +153,7 @@ async def choose_category(query: types.CallbackQuery,
     # -------------------
     elif query.data == 'level':
         await bot.send_message(telegram_id,
-                               'Для смены уровня обртатитесь к кураторам',
+                               'Для смены уровня обратитесь к кураторам',
                                reply_markup=profile_keyboard_2)
         await query.answer()
     elif query.data == 'height':

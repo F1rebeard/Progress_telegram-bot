@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from dotenv import load_dotenv
 
+from config.constants import ADMIN_IDS
 from keyboards.admin_kb import (admin_tools,
                                 users_info_inline_kb,
                                 user_action_inline_kb,
@@ -20,7 +21,6 @@ from create_bot import bot, db
 
 load_dotenv()
 
-ADMIN_IDS = os.getenv('ADMIN_IDS')
 JSON_PATH = os.getenv('JSON_PATH')
 SHEET_TITLE = os.getenv('SHEET_TITLE')
 
@@ -28,6 +28,7 @@ SHEET_TITLE = os.getenv('SHEET_TITLE')
 class UsersInfo(StatesGroup):
     find_users = State()
     user_management = State()
+    inactive_user_managment = State()
     actions_on_user = State()
     change_level = State()
     add_subscription = State()
@@ -311,7 +312,8 @@ async def send_message_to_all_via_bot(query: types.CallbackQuery,
 async def get_list_of_users(message: types.Message,
                             state: FSMContext) -> None:
     """
-    :param message:
+    Get list of users by search phrase from admin.
+    :param message: message.text - search phrase
     :param state:
     :return:
     """
@@ -326,10 +328,53 @@ async def get_list_of_users(message: types.Message,
     await state.set_state(UsersInfo.user_management)
 
 
+async def get_list_of_inactive_users(message: types.Message,
+                                     state: FSMContext) -> None:
+    """
+    Get list of inline buttons with inactive users for admin.
+    """
+    await message.answer(
+        'Список неактивных пользователей:',
+        reply_markup=await users_info_inline_kb(
+            await db.get_inactive_users_info()
+        )
+    )
+    await state.set_state(UsersInfo.inactive_user_managment)
+
+
+async def inactive_user_management(query: types.CallbackQuery,
+                                   state: FSMContext) -> None:
+    """
+    After selecting inactive user pops up management menu.
+    """
+    users_by_telegram_id = await users_management(
+        await db.get_inactive_users_info()
+    )
+    if int(query.data) in list(users_by_telegram_id.keys()):
+        user_data_by_id = users_by_telegram_id.get(int(query.data))[0]
+        async with state.proxy() as data:
+            data['user_id'] = int(query.data)
+            data['nickname'] = user_data_by_id[4]
+            data['first_name'] = user_data_by_id[0]
+            data['last_name'] = user_data_by_id[1]
+        await state.set_state(UsersInfo.actions_on_user)
+        await bot.edit_message_text(
+            text=f'Вы выбрали:\n@{user_data_by_id[4]}\n'
+                 f'{user_data_by_id[0]} {user_data_by_id[1]}\n'
+                 f'Уровень - {user_data_by_id[2]}\n'
+                 f'В прогрессе с {user_data_by_id[5]}\n\n'
+                 f'Действия:',
+            message_id=query.message.message_id,
+            chat_id=query.message.chat.id,
+            reply_markup=user_action_inline_kb
+        )
+        await query.answer()
+
+
 async def user_management_menu(query: types.CallbackQuery,
                                state: FSMContext) -> None:
     """
-    After selecting a user pops up a control menu
+    After selecting a user pops up a management menu.
     :param query:
     :param state:
     :return:
@@ -541,6 +586,9 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(user_management_menu,
                                        lambda query: True,
                                        state=UsersInfo.user_management)
+    dp.register_callback_query_handler(inactive_user_management,
+                                       lambda query: True,
+                                       state=UsersInfo.inactive_user_managment)
     dp.register_callback_query_handler(send_message_to_all_via_bot,
                                        lambda query: True,
                                        state=UsersInfo.approval)
@@ -558,6 +606,9 @@ def register_admin_handlers(dp: Dispatcher):
                                 text='🧙 Aдминка')
     dp.register_message_handler(find_users_by_names,
                                 text='👫 Операции с атлетами',
+                                state='*')
+    dp.register_message_handler(get_list_of_inactive_users,
+                                text='👥 Неактивные пользователи',
                                 state='*')
     dp.register_message_handler(check_for_workouts_upload,
                                 text='⏬ Добавить новые тренировки',
