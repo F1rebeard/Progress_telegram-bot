@@ -1,3 +1,12 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+admin_list = os.getenv("ADMIN_IDS")
+ADMIN_IDS = list(map(int, admin_list.split(', ')))
+
 #exercies urls
 RELIZ_URL = 'https://youtube.com/playlist?list=PLz5r9FgBibzZhDp-CT3pBsI5_Lnm9HhL0&si=3rz4K6UzVV24_Y7D'
 ACTIVATION_URL = 'https://youtube.com/playlist?list=PLz5r9FgBibzYa0S2kqNvOC1hN8pqWj5qT&si=_LP-g2AwNRKmZF6e'

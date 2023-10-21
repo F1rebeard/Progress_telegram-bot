@@ -4,28 +4,28 @@ ONE_HUNDRED_PERCENTS: int = 100
 
 # Диапазоны для силовых движений для первого уровня
 # 0 - Движение, 1 - min мужской, 2 - max мужской, 3 - min женский, 4 - max минский
-DEADLIFT_LVL_ONE_RANGE = ['Cтановая тяга 1ПМ',
+DEADLIFT_RANGE = ['Cтановая тяга 1ПМ',
                           120, 230, 60, 115,
                           135, 240, 75, 140]
-CLEAN_DEADLIFT_LVL_ONE_RANGE = ['Тяга в толчковых углах 1ПМ',
+CLEAN_DEADLIFT_RANGE = ['Тяга в толчковых углах 1ПМ',
                                 80, 180, 45, 95,
                                 110, 210, 55, 105]
-SNATCH_DEADLIFT_LVL_ONE_RANGE = ['Тяга в рывковых углах 1ПМ',
+SNATCH_DEADLIFT_RANGE = ['Тяга в рывковых углах 1ПМ',
                                  70, 170, 40, 90,
                                  100, 190, 45, 100]
-BACK_SQUAT_LVL_ONE_RANGE = ['Присед 1ПМ',
+BACK_SQUAT_RANGE = ['Присед 1ПМ',
                             80, 180, 50, 100,
                             100, 205, 60, 120]
-FRONT_SQUAT_LVL_ONE_RANGE = ['Фронтальный присед 1ПМ',
+FRONT_SQUAT_RANGE = ['Фронтальный присед 1ПМ',
                              70, 170, 40, 95,
                              85, 190, 55, 105]
-OVERHEAD_SQUAT_LVL_ONE_RANGE = ['Оверхед присед 1ПМ',
+OVERHEAD_SQUAT_RANGE = ['Оверхед присед 1ПМ',
                                 50, 140, 30, 75,
                                 70, 150, 40, 85]
-PUSH_PRESS_LVL_ONE_RANGE = ['Жим стоя 1ПМ',
+PUSH_PRESS_RANGE = ['Жим стоя 1ПМ',
                             40, 95, 20, 65,
                             55, 105, 30, 70]
-BENCH_PRESS_LVL_ONE_RANGE = ['Жим лежа 1ПМ',
+BENCH_PRESS_RANGE = ['Жим лежа 1ПМ',
                              60, 130, 30, 75,
                              75, 140, 35, 80]
 
@@ -243,14 +243,14 @@ POWER_RANGES = [
 
 # Список из диапазонов для силовых упражнений
 STRENGTH_RANGES = [
-     DEADLIFT_LVL_ONE_RANGE,
-     CLEAN_DEADLIFT_LVL_ONE_RANGE,
-     SNATCH_DEADLIFT_LVL_ONE_RANGE,
-     BACK_SQUAT_LVL_ONE_RANGE,
-     FRONT_SQUAT_LVL_ONE_RANGE,
-     OVERHEAD_SQUAT_LVL_ONE_RANGE,
-     PUSH_PRESS_LVL_ONE_RANGE,
-     BENCH_PRESS_LVL_ONE_RANGE,
+     DEADLIFT_RANGE,
+     CLEAN_DEADLIFT_RANGE,
+     SNATCH_DEADLIFT_RANGE,
+     BACK_SQUAT_RANGE,
+     FRONT_SQUAT_RANGE,
+     OVERHEAD_SQUAT_RANGE,
+     PUSH_PRESS_RANGE,
+     BENCH_PRESS_RANGE,
 ]
 
 STRENGTH_CAPACITY_RANGES = [
@@ -320,3 +320,105 @@ CATEGORIES_VIA_RANGES = {
     "POWER_RANGES": 'Взрывная сила',
     "STRENGTH_RANGES": 'Сила'
 }
+
+# basic exercises and movements
+BASE_STRENGTH_RANGES = [
+     DEADLIFT_RANGE,
+     BACK_SQUAT_RANGE,
+     FRONT_SQUAT_RANGE,
+     OVERHEAD_SQUAT_RANGE,
+     PUSH_PRESS_RANGE,
+     BENCH_PRESS_RANGE,
+]
+
+BASE_POWER_RANGES = [
+    LENGTH_JUMP,
+    SNATCH,
+    POWER_SNATCH,
+    POWER_CLEAN,
+    SPLIT_JERK,
+    POWER_JERK,
+    THRUSTER,
+    HANG_POWER_SNATCH,
+]
+
+BASE_STRENGTH_CAPACITY_RANGES = [
+    DEADLIFT_CAPACITY,
+    SQUAT_CAPACITY,
+    PUSH_PRESS_CAPACITY,
+    BENCH_PRESS_CAPACITY,
+    PULL_UP_CAPACITY,
+    DEEPS_CAPACITY
+]
+
+BASE_AEROBIC_RANGES = [
+    TWO_KM_ROW,
+    FIVE_KM_ROW,
+    STEP_ROW,
+    ROW_MAM,
+    BIKE_MAM,
+    BIKE_STEP,
+]
+
+BASE_GYMNASTIC_RANGES = [
+    PULL_UP_RM,
+    HS_WALK,
+    MIN_HS_WALK,
+    HANG,
+    ROPES,
+    NINETY_SEC_RING_MUSCLE_UPS,
+    NINETY_SEC_MUSCLE_UPS,
+    DEEP_RM,
+    TOES_TO_BAR,
+    MUSCLE_UPS,
+    LEGLESS_ROPES
+]
+
+BASE_METCON_RANGES = [
+    ONE_HUNDRED_AND_FIFTY_BURPEES,
+    KAREN,
+    MURPH,
+    CINDY,
+    LINDA,
+    OPEN_13_1,
+    KALSU,
+    OPEN_19_1,
+    OPEN_16_5
+]
+
+MINKAIF_LVL_ONE_USERS = [
+    5687110,
+    24545281,
+    39216101,
+    53446953,
+    56995625,
+    138354650,
+    219813598,
+    224060833,
+    274928384,
+    307592655,
+    330067834,
+    394551466,
+    430885909,
+    508664245,
+    558389121,
+    591169856,
+    641891302,
+    642067063,
+    696524114,
+    706074374,
+    709002847,
+    861856636,
+    865009374,
+    912227910,
+    975526658,
+    1442382006
+]
+
+MINKAIF_LVL_TWO_USERS = [
+    272950301,
+    455384939,
+    620071602,
+    765563507,
+    1008095334,
+]
