@@ -403,7 +403,6 @@ class Database:
                     "FROM users "
                     "WHERE subscribtion_date >= ?", (today,)
                 ).fetchall()
-
             return users_id
         except ValueError or TypeError:
             logging.info('Что-то с датой', today)
@@ -1288,6 +1287,20 @@ class Database:
             ).fetchall()
         return users_info
 
+    async def get_inactive_users_info(self):
+        """
+        Get list of inactive user info.
+        """
+        today = datetime.now().date()
+        with self.connection:
+            users_info = self.cursor.execute(
+                " SELECT telegram_id, first_name, last_name, level,"
+                " subscribtion_date, username, registration_date, birthdate"
+                " FROM users "
+                " WHERE sub_status IS FALSE"
+            ).fetchall()
+        return users_info
+
     async def get_user_username(self, telegram_id: int):
         """
         Checks user username
@@ -1328,6 +1341,7 @@ class Database:
         """
         Update search phrase for users by admin.
         :param state:
+        :param telegram_id:
         :return:
         """
         try:
