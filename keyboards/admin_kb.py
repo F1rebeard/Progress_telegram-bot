@@ -56,6 +56,7 @@ admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
 
 admin_tools = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(
     users_button,
+    inactive_users_button,
     send_to_all_button,
     add_workouts,
     delete_workouts,
