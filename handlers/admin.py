@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from dotenv import load_dotenv
 
+from config.constants import ADMIN_IDS
 from keyboards.admin_kb import (admin_tools,
                                 users_info_inline_kb,
                                 user_action_inline_kb,
@@ -20,7 +21,6 @@ from create_bot import bot, db
 
 load_dotenv()
 
-ADMIN_IDS = os.getenv('ADMIN_IDS')
 JSON_PATH = os.getenv('JSON_PATH')
 SHEET_TITLE = os.getenv('SHEET_TITLE')
 
@@ -311,7 +311,8 @@ async def send_message_to_all_via_bot(query: types.CallbackQuery,
 async def get_list_of_users(message: types.Message,
                             state: FSMContext) -> None:
     """
-    :param message:
+    Get list of users by search phrase from admin.
+    :param message: message.text - search phrase
     :param state:
     :return:
     """
@@ -325,6 +326,19 @@ async def get_list_of_users(message: types.Message,
     )
     await state.set_state(UsersInfo.user_management)
 
+
+async def get_list_of_inactive_users(message: types.Message,
+                                     state: FSMContext) -> None:
+    """
+    Get list of inline buttons with inactive users for admin.
+    """
+    await message.answer(
+        'Список неактивных пользователей:',
+        reply_markup=await users_info_inline_kb(
+            await db.get_inactive_users_info()
+        )
+    )
+    await state.set_state(UsersInfo.user_management)
 
 async def user_management_menu(query: types.CallbackQuery,
                                state: FSMContext) -> None:
@@ -558,6 +572,9 @@ def register_admin_handlers(dp: Dispatcher):
                                 text='🧙 Aдминка')
     dp.register_message_handler(find_users_by_names,
                                 text='👫 Операции с атлетами',
+                                state='*')
+    dp.register_message_handler(get_list_of_inactive_users,
+                                text='👥 Неактивные пользователи',
                                 state='*')
     dp.register_message_handler(check_for_workouts_upload,
                                 text='⏬ Добавить новые тренировки',
