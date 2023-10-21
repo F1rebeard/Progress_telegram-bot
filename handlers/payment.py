@@ -11,6 +11,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from dotenv import load_dotenv
 
 from create_bot import bot, db
+from config.constants import ADMIN_IDS
 from keyboards.user_kb import (choose_sub,
                                registration_button,
                                subscription_kb,
@@ -20,8 +21,7 @@ from handlers.registration import Registration
 
 load_dotenv()
 
-admins = os.getenv('ADMIN_IDS')
-
+PAYMENT_PROVIDER_TOKEN = os.getenv('PAYMENT_PROVIDER_TOKEN')
 
 # 1 месяц без куратора
 standard_price = [
