@@ -12,15 +12,11 @@ from config.constants import (ACTIVATIONS_BTNS,
                               RELEASES_BTNS,
                               PREACTIVATIONS_BTNS,
                               STRETCHING_BTNS,
-                              ABBREVIATIONS_DATA)
+                              ABBREVIATIONS_DATA,
+                              ADMIN_IDS)
 from graphic.graphic import characteristics_graphic
-from graphic.formula import user_axis_value
-from graphic.сonstants import (STRENGTH_RANGES,
-                               STRENGTH_CAPACITY_RANGES,
-                               AEROBIC_RANGES,
-                               POWER_RANGES,
-                               GYMNASTIC_RANGES,
-                               METCON_RANGES)
+from graphic.formula import (get_base_profile_data,
+                             get_full_profile_data)
 from keyboards.user_kb import (user_keyboard,
                                profile_keyboard_1,
                                subscription_kb,
@@ -32,7 +28,6 @@ from keyboards.user_kb import (user_keyboard,
 from keyboards.profile_kb import categories_keyboard
 from keyboards.admin_kb import admin_keyboard
 from handlers.registration import Registration
-from config.constants import ADMIN_IDS
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar
@@ -57,7 +52,7 @@ async def start_bot(message: types.Message, state: FSMContext):
             subscription_date = await db.get_user_subscription_date(telegram_id)
             days_till_payment = (subscription_date - datetime.now().date()).days
             subscription_date = subscription_date.strftime("%d.%m.%Y")
-            # Если являяется аодмином
+            # Если являяется админом
             if telegram_id in ADMIN_IDS:
                 await message.answer(
                     'Привет, повелитель {0.first_name}!'.format(message.from_user),
@@ -141,7 +136,7 @@ async def show_abbreviations(message: types.Message,
     :return:
     """
     inline_kb = types.InlineKeyboardMarkup()
-    #добавляем кнопки с сокращениями
+    # adding buttons with abbreviations
     for abbreviation, (description, query_data) in ABBREVIATIONS_DATA.items():
         inline_kb.insert(
             types.InlineKeyboardButton(text=abbreviation,
@@ -152,18 +147,26 @@ async def show_abbreviations(message: types.Message,
                          reply_markup=inline_kb)
 
 
+def get_description_from_data(
+        query_data: str) -> str:
+    """
+
+    """
+    try:
+        for abbrv, (desc, data) in ABBREVIATIONS_DATA.items():
+            if data == query_data:
+                return desc
+    except ValueError:
+        logging.info('Нету такого описания')
+
+
 async def send_description(query: types.CallbackQuery):
     """
     Show description for every abbreviation.
     :param query:
     :return:
     """
-    query_data = [data for abbv, (desc, data) in ABBREVIATIONS_DATA.items()]
-    if query.data in query_data:
-        for abbv, (desc, data) in ABBREVIATIONS_DATA.items():
-            if data == query.data:
-                description = desc
-                break
+    description = get_description_from_data(query.data)
     await query.message.answer(text=description)
     await query.answer()
 
@@ -324,89 +327,32 @@ async def show_categories(message: types.Message,
                            reply_markup=categories_keyboard)
 
 
-async def show_users_graph(message: types.Message,
-                           state: FSMContext) -> None:
+async def draw_base_graph(message: types.Message) -> None:
     """
-    Pressing buttons to show your graph
-    :param message:
-    :param state:
-    :return:
+    Shows up the base graph or list of unfilled exercises for the user.
     """
     user_id = message.from_user.id
-    strength_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=STRENGTH_RANGES,
-        user_results=await db.get_user_last_strength_result(
-            telegram_id=user_id),
-        category='Сила'
-    )
-    power_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=POWER_RANGES,
-        user_results=await db.get_user_last_power_result(telegram_id=user_id),
-        category='Взрывная сила'
-    )
-    aerobic_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=AEROBIC_RANGES,
-        user_results=await db.get_user_last_aerobic_result(telegram_id=user_id),
-        category='Выносливость и эргометры'
-    )
-    strength_capacity_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=STRENGTH_CAPACITY_RANGES,
-        user_results=await db.get_user_last_strength_capacity_result(
-            telegram_id=user_id),
-        category='Силовая выносливость'
-    )
-    gymnastics_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=GYMNASTIC_RANGES,
-        user_results=await db.get_user_last_gymnastics_result(
-            telegram_id=user_id),
-        category='Гимнастика'
-    )
-    metcon_result = await user_axis_value(
-        telegram_id=user_id,
-        characteristics_ranges=METCON_RANGES,
-        user_results=await db.get_user_metcons_last_result(
-            telegram_id=user_id),
-        category='Метконы'
-    )
-    # Порядок в соотвествии с осями графика:
-    # Cила, Взрывная сила, Силовая выносливость, Выносливость и эргометры,
-    # Гимнастика и метконы
-
-    user_values = [
-        strength_result,
-        power_result,
-        strength_capacity_result,
-        aerobic_result,
-        gymnastics_result,
-        metcon_result
-    ]
-    # создаем пустой список для незаполненных результатов
+    base_user_values = await get_base_profile_data(user_id)
+    # list for unfilled profile exercises for user
     not_fully_filled_data = []
-    for result in user_values:
+    for result in base_user_values:
         if type(result) is str:
             not_fully_filled_data.append(result)
-    if len(not_fully_filled_data) != 0:
+    if not_fully_filled_data:
         await message.answer(
-            'Для получения своей характеристики необходимо заполнить следующие'
+            'Для получения базовой характеристики '
+            'необходимо заполнить следующие'
             ' упражнения:\n\n')
         for missing_movements in not_fully_filled_data:
             await message.answer(text=missing_movements)
-    elif user_values[0] is None:
-        await message.answer(
-            'Вы же в Минкайфе - кайфуйте!\n\n'
-            ' Зачем вам все эти графики?'
-        )
+    elif base_user_values[0] is None:
+        await message.answer('Обратись к @uncle_boris, он знает что делать!')
     else:
         await message.answer(
-            'Общий график характеристик на основе твоих результатов по всем '
-            'категориям\n\nГрафик сейчас будет, джаст э момуемент'
+            'Базовый график характеристик на основе результатов тестовых '
+            'недель:'
         )
-        await characteristics_graphic(user_values, user_id)
+        await characteristics_graphic(base_user_values, user_id)
         await bot.send_photo(
             chat_id=message.from_user.id,
             photo=open(f'media/{user_id}.png', 'rb')
@@ -414,6 +360,39 @@ async def show_users_graph(message: types.Message,
         os.remove(f'media/{user_id}.png')
 
 
+async def draw_full_graph(message: types.Message) -> None:
+    """
+    Shows users characteristics graph with all filled exercises and tasks.
+    If not exercises are filled, shows the list of exercises to fill up.
+    :param message:
+    :return:
+    """
+    user_id = message.from_user.id
+    full_user_values = await get_full_profile_data(user_id)
+    # создаем пустой список для незаполненных результатов
+    not_fully_filled_data = []
+    for result in full_user_values:
+        if type(result) is str:
+            not_fully_filled_data.append(result)
+    if not_fully_filled_data:
+        await message.answer(
+            'Для получения своей характеристики необходимо заполнить следующие'
+            ' упражнения:\n\n')
+        for missing_movements in not_fully_filled_data:
+            await message.answer(text=missing_movements)
+    elif full_user_values[0] is None:
+        await message.answer('Обратись к @uncle_boris, он знает что делать!')
+    else:
+        await message.answer(
+            'Общий график характеристик на основе твоих результатов по всем '
+            'категориям\n\nГрафик сейчас будет, джаст э момуемент'
+        )
+        await characteristics_graphic(full_user_values, user_id)
+        await bot.send_photo(
+            chat_id=message.from_user.id,
+            photo=open(f'media/{user_id}.png', 'rb')
+        )
+        os.remove(f'media/{user_id}.png')
 
 
 def register_users_handlers(dp: Dispatcher):
@@ -442,6 +421,9 @@ def register_users_handlers(dp: Dispatcher):
                                 state='*')
     dp.register_message_handler(show_categories, text='🦄️ Категории',
                                 state='*')
-    dp.register_message_handler(show_users_graph,
-                                text='📊 Твои характеристики',
+    dp.register_message_handler(draw_base_graph,
+                                text='🐯🐾 Базовая характеристика',
+                                state='*')
+    dp.register_message_handler(draw_full_graph,
+                                text='🥷🏿☯ Полная характеристика',
                                 state='*')

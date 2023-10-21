@@ -20,7 +20,8 @@ from handlers.registration import Registration
 
 load_dotenv()
 
-ADMIN_IDS = os.getenv('ADMIN_IDS')
+admins = os.getenv('ADMIN_IDS')
+
 
 # 1 месяц без куратора
 standard_price = [
