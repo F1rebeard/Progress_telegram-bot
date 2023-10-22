@@ -2,18 +2,14 @@ import logging
 import os
 
 from datetime import datetime
-from dotenv import load_dotenv
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from create_bot import bot, db
+from config.constants import ADMIN_IDS
 from handlers.admin import UsersInfo
 from keyboards.admin_kb import yes_or_no_inline_kb, admin_tools
 from keyboards.user_kb import unfreeze_kb, user_keyboard
-
-load_dotenv()
-
-ADMIN_IDS = os.getenv('ADMIN_IDS')
 
 
 async def freezing_subscription_approval(message: types.Message,
