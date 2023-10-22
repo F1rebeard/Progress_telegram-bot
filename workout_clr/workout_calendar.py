@@ -292,12 +292,15 @@ class WorkoutCalendar:
             )
             chosen_warm_up = await choosing_warm_up_protocol(chosen_workout)
             await query.message.answer(text=chosen_warm_up,
-                                       parse_mode=ParseMode.HTML)
-            await query.message.answer(text=chosen_workout)
+                                       parse_mode=ParseMode.HTML,
+                                       protect_content=True)
+            await query.message.answer(text=chosen_workout,
+                                       protect_content=True)
             await query.message.answer(text=f'Хэштег этой тренировки, чтобы '
                                             f'поделиться результатом в чатике'
                                             f'\n\n'
-                                            f'{workout_hashtag}')
+                                            f'{workout_hashtag}',
+                                       )
             await query.answer()
         elif data['act'] == "EDIT_RESULTS":
             workout_hashtag = await create_hashtag(telegram_id)

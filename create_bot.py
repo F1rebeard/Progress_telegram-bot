@@ -13,4 +13,3 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 db = Database('../Progress_forever_bot/database/progress.db')
-

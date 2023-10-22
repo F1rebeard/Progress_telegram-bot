@@ -4,6 +4,8 @@ import os
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.exceptions import ChatNotFound
+
 from dotenv import load_dotenv
 
 from config.constants import ADMIN_IDS
@@ -501,11 +503,14 @@ async def cancel_user_subscription(query: types.CallbackQuery,
         if query.data == 'yes_action':
             await db.cancel_user_subscription(telegram_id=info['user_id'])
             await db.deactivate_subscription_status(telegram_id=info['user_id'])
-            await bot.send_message(
-                chat_id=info['user_id'],
-                text='Твоя подписка была отменена! Для подробностей - '
-                     'напиши @fserkov'
-            )
+            try:
+                await bot.send_message(
+                    chat_id=info['user_id'],
+                    text='Твоя подписка была отменена! Для подробностей - '
+                         'напиши @fserkov'
+                )
+            except ChatNotFound:
+                logging.info('Чат не найден!')
             await bot.edit_message_text(
                 text=f'Подписка @{info["nickname"]} отменена!',
                 message_id=query.message.message_id,
@@ -527,6 +532,7 @@ async def add_subscription_to_user(message: types.Message,
                                    state: FSMContext):
     """
     Adds subscription to user without money by admin.
+    :param message:
     :param state:
     :return:
     """
