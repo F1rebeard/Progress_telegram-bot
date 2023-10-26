@@ -38,7 +38,7 @@ async def pull_up_one_rm_result(
     :return:
     """
     try:
-        weight = int(message.text)
+        weight = float(message.text)
         if 0 <= weight <= 100:
             async with state.proxy() as data:
                 data['result'] = weight
@@ -66,7 +66,7 @@ async def rings_deep_one_rm_result(message: types.Message,
     :return:
     """
     try:
-        weight = int(message.text)
+        weight = float(message.text)
         if 0 <= weight <= 100:
             async with state.proxy() as data:
                 data['result'] = weight
@@ -94,7 +94,7 @@ async def deep_one_rm_result(
     :return:
     """
     try:
-        weight = int(message.text)
+        weight = float(message.text)
         if 0 <= weight <= 100:
             async with state.proxy() as data:
                 data['result'] = weight
