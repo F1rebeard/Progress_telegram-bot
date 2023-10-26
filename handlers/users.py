@@ -46,6 +46,11 @@ async def start_bot(message: types.Message, state: FSMContext):
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):
+        current_state = await state.get_state()
+        if current_state is None:
+            pass
+        else:
+            await state.finish()
         try:
             # получаем дату действия подписки
             # завернуть в функцию проверки подписки
@@ -228,9 +233,8 @@ async def show_profile_menu(message: types.Message,
     current_state = await state.get_state()
     if current_state is None:
         pass
-    if not await db.get_user_username(message.from_user.id):
-        await db.insert_user_username(telegram_id=message.from_user.id,
-                                      username=message.from_user.username)
+    else:
+        await state.finish()
     await message.answer('Вы зашли в свой профиль, где вы можете посмотреть'
                          ' и редактировать свои результаты и параметры.',
                          reply_markup=profile_keyboard_1)
@@ -399,7 +403,9 @@ def register_users_handlers(dp: Dispatcher):
     """
     Registration of user handlers.
     """
-    dp.register_message_handler(start_bot, commands=['start'])
+    dp.register_message_handler(start_bot,
+                                commands=['start'],
+                                state='*')
     dp.register_callback_query_handler(choose_date,
                                        workout_cal_callback.filter(),
                                        state='*')

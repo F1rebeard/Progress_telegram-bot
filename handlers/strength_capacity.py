@@ -60,7 +60,7 @@ async def weight_for_movement(telegram_id: int, movement: str) -> int or str:
                 )
             if user_gender == 'Мужской':
                 deep_rms = await db.gymnastics_result_history(
-                    telegram_id, 'Отжимания на кольцах 1ПМ'
+                    telegram_id, 'Отжимания на брусьях 1ПМ'
                 )
             weight = round(
                 (((float(

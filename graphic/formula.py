@@ -51,7 +51,7 @@ async def choose_the_interval(
     :param movement_data: from database via telegram_id
     :return:
     """
-    if user_level == 'Первый' or telegram_id in minkaif_lvl_one:
+    if user_level == 'Первый' or (telegram_id in minkaif_lvl_one):
         if gender == 'Мужской':
             # 100% value for men (10 from 10)
             one_hundred_perc = movement_data[2]
@@ -64,7 +64,7 @@ async def choose_the_interval(
             # 100% value for women (1 from 10)
             ten_perc = movement_data[3]
             return ten_perc, one_hundred_perc
-    if (user_level == 'Второй' or
+    elif (user_level == 'Второй' or
             user_level == 'Соревнования' or
             telegram_id in minkaif_lvl_two):
         if gender == 'Мужской':
@@ -79,6 +79,8 @@ async def choose_the_interval(
             # значение 10% для девушек (1 из 10)
             ten_perc = movement_data[7]
             return ten_perc, one_hundred_perc
+    else:
+        return None
 
 
 def time_string_to_seconds(text: str) -> int or str:
@@ -204,53 +206,56 @@ async def user_axis_value(telegram_id: int,
     # список упражнений, у которых не заполнены результаты
     no_results = []
     user_bio = await user_info(telegram_id)
-    if user_bio[0] == 'Минкайфа':
+    if ((telegram_id not in MINKAIF_LVL_ONE_USERS and
+            telegram_id not in MINKAIF_LVL_TWO_USERS) and
+            user_bio == 'Минкайфа'):
         return None
-    for movement_data in characteristics_ranges:
-        for result in user_results:
-            if movement_data[0] == result[0]:
-                # получаем диапазоны для упражнений (муж / жен)
-                ten_perc, one_hundred_perc = await choose_the_interval(
-                    gender=user_bio[1],
-                    user_level=user_bio[0],
-                    movement_data=movement_data,
-                    minkaif_lvl_one=MINKAIF_LVL_ONE_USERS,
-                    minkaif_lvl_two=MINKAIF_LVL_TWO_USERS,
-                    telegram_id=telegram_id
-                )
-                if result[0] in TIME_MOVEMENTS:
-                    # перевод текс времени в секунды
-                    ten_perc = time_string_to_seconds(ten_perc)
-                    one_hundred_perc = time_string_to_seconds(
-                        one_hundred_perc)
-                    # переводим диапазоны и результат в числа для расчёта
-                    hdr_perc, ten_perc, user_result = await transform_to_float(
-                        one_hundred_perc=one_hundred_perc,
-                        ten_perc=ten_perc,
-                        user_result=result[3]
+    else:
+        for movement_data in characteristics_ranges:
+            for result in user_results:
+                if movement_data[0] == result[0]:
+                    # получаем диапазоны для упражнений (муж / жен)
+                    ten_perc, one_hundred_perc = await choose_the_interval(
+                        gender=user_bio[1],
+                        user_level=user_bio[0],
+                        movement_data=movement_data,
+                        minkaif_lvl_one=MINKAIF_LVL_ONE_USERS,
+                        minkaif_lvl_two=MINKAIF_LVL_TWO_USERS,
+                        telegram_id=telegram_id
                     )
-                    movement_perc_score = await movement_time_result_to_axis_value(
-                        one_hundred_perc=hdr_perc,
-                        ten_perc=ten_perc,
-                        user_result=user_result
-                    )
-                else:
-                    # переводим диапазоны и результат в числа для расчёта
-                    hdr_perc, ten_perc, user_result = await transform_to_float(
-                        one_hundred_perc=one_hundred_perc,
-                        ten_perc=ten_perc,
-                        user_result=result[2]
-                    )
-                    # получаем значение упражнения в процентах
-                    movement_perc_score = await movement_result_to_axis_value(
-                        one_hundred_perc=hdr_perc,
-                        ten_perc=ten_perc,
-                        user_result=user_result
-                    )
-                movement_results.append(movement_perc_score)
-                break
-        else:
-            no_results.append(movement_data[0])
+                    if result[0] in TIME_MOVEMENTS:
+                        # перевод текс времени в секунды
+                        ten_perc = time_string_to_seconds(ten_perc)
+                        one_hundred_perc = time_string_to_seconds(
+                            one_hundred_perc)
+                        # переводим диапазоны и результат в числа для расчёта
+                        hdr_perc, ten_perc, user_result = await transform_to_float(
+                            one_hundred_perc=one_hundred_perc,
+                            ten_perc=ten_perc,
+                            user_result=result[3]
+                        )
+                        movement_perc_score = await movement_time_result_to_axis_value(
+                            one_hundred_perc=hdr_perc,
+                            ten_perc=ten_perc,
+                            user_result=user_result
+                        )
+                    else:
+                        # переводим диапазоны и результат в числа для расчёта
+                        hdr_perc, ten_perc, user_result = await transform_to_float(
+                            one_hundred_perc=one_hundred_perc,
+                            ten_perc=ten_perc,
+                            user_result=result[2]
+                        )
+                        # получаем значение упражнения в процентах
+                        movement_perc_score = await movement_result_to_axis_value(
+                            one_hundred_perc=hdr_perc,
+                            ten_perc=ten_perc,
+                            user_result=user_result
+                        )
+                    movement_results.append(movement_perc_score)
+                    break
+            else:
+                no_results.append(movement_data[0])
     if len(no_results) != 0:
         # указываем категорию с пустыми упражнениями
         category_name = f'{category}:\n'
@@ -270,7 +275,6 @@ async def get_base_profile_data(user_id: int) -> list:
     """
     # list with result for each category
     base_user_profile_data: list = []
-    # list for unfilled profile results
     user_categories_data: list = [
         (BASE_STRENGTH_RANGES, await db.get_user_last_strength_result(user_id),
          'Cила'),
@@ -296,6 +300,7 @@ async def get_base_profile_data(user_id: int) -> list:
                 category=category[2]
             )
         )
+    print(base_user_profile_data)
     return base_user_profile_data
 
 
@@ -305,7 +310,6 @@ async def get_full_profile_data(user_id: int) -> list:
     otherwise shows the list of exercsises to fill.
     """
     full_user_profile_data: list = []
-    # list for unfilled profile results
     user_categories_data: list = [
         (STRENGTH_RANGES, await db.get_user_last_strength_result(user_id),
          'Cила'),
