@@ -52,7 +52,7 @@ async def weight_for_movement(telegram_id: int, movement: str) -> int or str:
                 (((float(pull_up_rms[0][1]) + user_weight)) * 0.7) - user_weight
             )
             if weight < 0:
-                return '🦆'
+                return 0
         elif movement == 'Отжимания  с подвесом на кол-во':
             if user_gender == 'Женский':
                 deep_rms = await db.gymnastics_result_history(
@@ -67,7 +67,7 @@ async def weight_for_movement(telegram_id: int, movement: str) -> int or str:
                     deep_rms[0][1]) + user_weight)) * 0.7) - user_weight
             )
             if weight < 0:
-                return '🦆'
+                return 0
         return int(weight)
     except TypeError or ValueError:
         return 'Нету данных!'
@@ -85,6 +85,9 @@ async def sinkler_coef(telegram_id: int, movement: str, reps: int) -> float:
         koefficent = int(reps) * movement_weight / float(user_weight)
     elif movement in ['Подтягивания с подвесом на кол-во',
                       'Отжимания  с подвесом на кол-во']:
+        if movement_weight == 0:
+            koefficent = int(reps)
+            return round(koefficent, 2)
         koefficent = int(reps) * movement_weight
     return round(koefficent, 2)
 
