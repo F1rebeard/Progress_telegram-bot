@@ -456,10 +456,10 @@ async def choose_category(query: types.CallbackQuery,
         await state.set_state(StrengthCapacityData.deadlift)
         await bot.send_message(
             telegram_id,
+            f'Вес твоего снаряда - '
+            f'{await weight_for_movement(telegram_id, data["movement"])} кг)\n\n'
             'Введи количество повторений cтановой тяги с '
-            'весом 70% от 1ПМ (вес твоего снаряда - '
-            f'{await weight_for_movement(telegram_id, data["movement"])} кг)'
-            ', например 10:')
+            'весом 70% от 1ПМ, например 10:')
         await query.answer()
     elif query.data == 'squat_cpt':
         async with state.proxy() as data:
@@ -714,7 +714,7 @@ async def choose_category(query: types.CallbackQuery,
         await bot.send_message(telegram_id,
                                'Введи вес подвеса 1ПМ строгого подтягивания'
                                ' в килограммах,'
-                               ' например: 45')
+                               ' например: 45.5')
         await query.answer()
     elif query.data == 'ring_deep_1_rm':
         async with state.proxy() as data:
@@ -724,7 +724,7 @@ async def choose_category(query: types.CallbackQuery,
         await bot.send_message(telegram_id,
                                'Введи вес подвеса 1ПМ строгого отжимания'
                                'на кольцах в килограммах,'
-                               ' например: 52')
+                               ' например: 52.5')
         await query.answer()
     elif query.data == 'deep_1rm':
         async with state.proxy() as data:
@@ -734,7 +734,7 @@ async def choose_category(query: types.CallbackQuery,
         await bot.send_message(telegram_id,
                                'Введи вес подвеса 1ПМ строгого отжимания'
                                'на брусьях в килограммах,'
-                               ' например: 52')
+                               ' например: 52.6')
         await query.answer()
     elif query.data == 'pull_ups':
         async with state.proxy() as data:
