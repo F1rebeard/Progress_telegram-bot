@@ -248,16 +248,10 @@ async def message_to_all_via_bot(message: types.Message, state: FSMContext):
     :return:
     """
     if message.from_user.id in ADMIN_IDS:
-        current_state = await state.get_state()
-        if current_state is None:
-            pass
-        else:
-            await state.finish()
-            logging.info('Cancelling state %r', current_state)
-            await state.set_state(UsersInfo.send_to_all_via_bot)
-            await message.answer(
-                text='Введи сообщение, которое хочешь отправить всем'
-            )
+        await state.set_state(UsersInfo.send_to_all_via_bot)
+        await message.answer(
+            text='Введи сообщение, которое хочешь отправить всем'
+        )
 
 
 async def approve_sending_message_to_all(message: types.Message,
