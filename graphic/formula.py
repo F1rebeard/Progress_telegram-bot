@@ -300,7 +300,6 @@ async def get_base_profile_data(user_id: int) -> list:
                 category=category[2]
             )
         )
-    print(base_user_profile_data)
     return base_user_profile_data
 
 

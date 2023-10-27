@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -41,6 +42,7 @@ async def weight_for_movement(telegram_id: int, movement: str) -> int or str:
         biometrics = list(await db.get_user_biometrics(telegram_id))
         user_weight = biometrics[3]
         user_gender = biometrics[1]
+        weight: float = 0
         if movement in list(MOVEMENTS_CONNECTION.keys()):
             strength_movement_rms = await db.strength_movement_result_history(
                 telegram_id, MOVEMENTS_CONNECTION.get(movement))
@@ -68,9 +70,9 @@ async def weight_for_movement(telegram_id: int, movement: str) -> int or str:
             )
             if weight < 0:
                 return 0
-        return int(weight)
+        return float(weight)
     except TypeError or ValueError:
-        return 'Нету данных!'
+        return logging.info('Нету данных о ПМ!')
 
 
 async def sinkler_coef(telegram_id: int, movement: str, reps: int) -> float:

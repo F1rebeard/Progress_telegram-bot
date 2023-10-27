@@ -249,7 +249,6 @@ async def fill_empty_keyboard(
             no_result_movements.append(key)
     for index in range(len(no_result_movements)):
         buttons_data = buttons.get(no_result_movements[index])
-        print(buttons_data)
         inline_keyboard.row()
         if buttons == METCONS_INLINE_KB:
             inline_keyboard.insert(

@@ -292,9 +292,8 @@ async def send_message_to_all_via_bot(query: types.CallbackQuery,
                         text=message_text,
                         chat_id=user_data[0]
                     )
-                except ValueError:
-                    logging.info('Такого пользователя не существует',
-                                 user_data[0])
+                except ChatNotFound:
+                    logging.info('Нету чата с этим пользователем')
             await query.message.answer('Готово')
             await state.finish()
         elif query.data == 'no_action':

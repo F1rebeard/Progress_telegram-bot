@@ -69,7 +69,8 @@ profile_keyboard_1 = ReplyKeyboardMarkup(resize_keyboard=True,
     categories_button,
     main_menu_button,
     base_graphic_button,
-    full_graphic_button
+    full_graphic_button,
+    cancel_button
 )
 
 profile_keyboard_2 = ReplyKeyboardMarkup(resize_keyboard=True,
