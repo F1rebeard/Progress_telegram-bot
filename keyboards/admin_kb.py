@@ -31,13 +31,13 @@ abbreviations_button = KeyboardButton('❓ Сокращения')
 profile_button = KeyboardButton('👹 Профиль')
 subscription_button = KeyboardButton('⏳🈂 Подписка')
 
-
 # admin buttons
 admin_button = KeyboardButton('🧙 Aдминка')
 
 # admin menu buttons
 users_button = KeyboardButton('👫 Операции с атлетами')
 inactive_users_button = KeyboardButton('👥 Неактивные пользователи')
+add_new_users_button = KeyboardButton('👤 Добавить нового пользователя')
 send_to_all_button = KeyboardButton('📢 Сообщение всем')
 add_workouts = KeyboardButton('⏬ Добавить новые тренировки')
 delete_workouts = KeyboardButton('⚠️ Удалить последнюю неделю тренировок')
@@ -57,6 +57,7 @@ admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
 admin_tools = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(
     users_button,
     inactive_users_button,
+    add_new_users_button,
     send_to_all_button,
     add_workouts,
     delete_workouts,
