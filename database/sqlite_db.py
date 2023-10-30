@@ -10,7 +10,7 @@ class Database:
         self.cursor = self.connection.cursor()
         print('Database is online!')
 
-    # РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЕЙ В ДБ
+    # NEW USER REGISTRATION
     async def add_user(self, state: FSMContext) -> None:
         """
         Adds telegram_id and user telegram nickname after payment.
@@ -22,6 +22,19 @@ class Database:
                     "telegram_id, username, registration_date"
                     ") "
                     " VALUES (?, ?, ?)", tuple(data.values())
+                )
+
+    async def add_user_manually_by_admin(self, state: FSMContext) -> None:
+        """
+        Adds new user into database after payment via website.
+        """
+        async with state.proxy() as data:
+            with self.connection:
+                self.cursor.execute(
+                    "INSERT INTO users("
+                    "telegram_id, registration_date, subscribtion_date, "
+                    "sub_status, freeze_status) "
+                    "VALUES  (?, ?, ?, ?, ?)", tuple(data.values())
                 )
 
     async def user_final_registration(
@@ -64,7 +77,6 @@ class Database:
                 for data in user_info[0]:
                     if data is not None:
                         result.append(data)
-                print(result)
             return bool(len(result))
         except ValueError or TypeError:
             logging.info('Пользователь не найден', telegram_id)
