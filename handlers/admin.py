@@ -1,6 +1,8 @@
 import logging
 import os
 
+from datetime import datetime, timedelta
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -42,6 +44,7 @@ class UsersInfo(StatesGroup):
     delete_workouts = State()
     freeze_subscription = State()
     unfreeze_subscription = State()
+    add_new_user = State()
 
 
 async def users_management(users_info: list) -> dict:
@@ -398,6 +401,48 @@ async def user_management_menu(query: types.CallbackQuery,
         await query.answer()
 
 
+async def add_new_user(message: types.Message,
+                       state: FSMContext) -> None:
+    """
+    Asks a telegram_id for new user to add manually.
+    """
+    await message.answer(
+        f'Введи telegram_id нового пользователя\n\n'
+        f'Свой telegram_id новый пользователь может узнать у @userinfobot'
+    )
+    await state.set_state(UsersInfo.add_new_user)
+
+
+async def insert_new_user_into_database(message: types.Message,
+                                        state: FSMContext) -> None:
+    """
+    Gets telegram_id and adds new user ti database with 30 days subs active.
+    """
+    telegram_id = int(message.text)
+    if not await db.user_payed_not_registered(telegram_id):
+        registration_date = datetime.now().date()
+        subscription_till = (datetime.now() + timedelta(days=30)).date()
+        async with state.proxy() as data:
+            data['telegram_id'] = telegram_id
+            data['registration_date'] = registration_date
+            data['subscribtion_date'] = subscription_till
+            data['sub_status'] = True
+            data['freeze_status'] = False
+        await db.add_user_manually_by_admin(state)
+        await message.answer(
+            f'Пользователь с telegram_id: {data["telegram_id"]} добавлен в бота.\n'
+            f'Дата регистрации сегодня \n'
+            f'Подписка до {subscription_till.strftime("%d.%m.%Y")}\n\n'
+            f'Новому пользователю необходимо закончить регистрацию в боте'
+        )
+        await state.finish()
+    else:
+        await message.answer(
+            f'Пользователь с telegram_id: {telegram_id} уже есть в боте!'
+        )
+        await state.finish()
+
+
 async def actions_under_user(query: types.CallbackQuery,
                              state: FSMContext) -> None:
     """
@@ -606,6 +651,11 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_message_handler(find_users_by_names,
                                 text='👫 Операции с атлетами',
                                 state='*')
+    dp.register_message_handler(add_new_user,
+                                text='👤 Добавить нового пользователя',
+                                state='*')
+    dp.register_message_handler(insert_new_user_into_database,
+                                state=UsersInfo.add_new_user)
     dp.register_message_handler(get_list_of_inactive_users,
                                 text='👥 Неактивные пользователи',
                                 state='*')
