@@ -27,7 +27,9 @@ from keyboards.user_kb import (user_keyboard,
                                )
 from keyboards.profile_kb import categories_keyboard
 from keyboards.admin_kb import admin_keyboard
+from keyboards.athlete_tests_kb import tests_inline_keyboard
 from handlers.registration import Registration
+from handlers.athlete_tests import INSTRUCTION
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar
@@ -242,6 +244,19 @@ async def show_profile_menu(message: types.Message,
                          reply_markup=categories_keyboard)
 
 
+async def show_tests_menu(message: types.Message,
+                          state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        pass
+    else:
+        await state.finish()
+    await message.answer(
+        text=INSTRUCTION,
+        reply_markup=await tests_inline_keyboard()
+    )
+
+
 async def back_to_main_menu(message: types.Message, state: FSMContext):
     """
     Returns user back to main menu.
@@ -425,6 +440,7 @@ def register_users_handlers(dp: Dispatcher):
                                 state='*'),
     dp.register_message_handler(show_workout_calendar, text='🏋 Тренировки',
                                 state='*')
+    dp.register_message_handler(show_tests_menu, text='📉 Тесты', state='*')
     dp.register_message_handler(show_categories, text='🦄️ Категории',
                                 state='*')
     dp.register_message_handler(draw_base_graph,

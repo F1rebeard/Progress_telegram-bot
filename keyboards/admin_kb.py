@@ -4,7 +4,7 @@ from aiogram.types import (ReplyKeyboardMarkup,
                            InlineKeyboardMarkup,
                            InlineKeyboardButton)
 
-from keyboards.user_kb import create_inline_keyboard
+from keyboards.user_kb import create_inline_keyboard, tests_button
 
 #inline buttons for actions with selected users
 ACTIONS_WITH_CHOSEN_USERS = (
@@ -49,6 +49,7 @@ back_button = KeyboardButton('⬅ Назад')
 admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
     admin_button,
     workout_button,
+    tests_button,
     profile_button,
     excercises_button,
     abbreviations_button,

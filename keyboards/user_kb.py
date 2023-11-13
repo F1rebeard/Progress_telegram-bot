@@ -34,6 +34,7 @@ CHOSE_EXERCISE_CATEGORY = (
 workout_button = KeyboardButton('🏋 Тренировки')
 excercises_button = KeyboardButton('🤓 Упражнения')
 abbreviations_button = KeyboardButton('❓ Сокращения')
+tests_button = KeyboardButton('📉 Тесты')
 profile_button = KeyboardButton('👹 Профиль')
 subscription_button = KeyboardButton('⏳🈂 Подписка')
 unfreeze_button = KeyboardButton('❄️ Разморозка')
@@ -54,6 +55,7 @@ user_keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
                                     row_width=2).add(
     workout_button,
     profile_button,
+    tests_button,
     excercises_button,
     abbreviations_button,
     subscription_button

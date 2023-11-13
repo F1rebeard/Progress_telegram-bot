@@ -83,7 +83,7 @@ async def characteristics_graphic(values: list, telegram_id: int):
         )
 
     mplcyberpunk.add_glow_effects()
-    plt.savefig(f'media/{telegram_id}.png')
+    plt.savefig(f'media/{user_info[0]} {user_info[1]}.png')
     plt.close()
 
 

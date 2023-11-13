@@ -308,7 +308,7 @@ async def open_16_5_result(
     """
     try:
         converted_answer = time_string_to_seconds(message.text)
-        if 360 <= converted_answer <= 1200:
+        if 360 <= converted_answer <= 2400:
             async with state.proxy() as data:
                 data['result_time'] = converted_answer
                 data['date'] = datetime.now()
