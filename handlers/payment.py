@@ -175,8 +175,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                         f'(без куратора) 🤑🤑🤑\n'
                         f'telegram_id: {telegram_id}\n'
                         f'username: @{username}\n\n'
-                        f'Не забудь поинтересоваться как у него (неё) дела 🙌 '
-                        f'и впечатление от тренировок 🤺'
                     )
                 except ChatNotFound:
                     logging.info('Чат не найден!')
@@ -197,8 +195,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'(с куратором) 🤑🤑🤑\n'
                     f'telegram_id: {telegram_id}\n'
                     f'username: @{username}\n\n'
-                    f'Не забудь поинтересоваться как у него (неё) дела 🙌 '
-                    f'и впечатление от тренировок 🤺'
                 )
     else:
         async with state.proxy() as data:
@@ -227,7 +223,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'К нам присоединился(-ась) @{username}\n\n '
                     f'(без куратора) 🤑🤸\n'
                     f'telegram_id: {telegram_id}\n'
-                    f'Возможно нужен небольшой стартовый ассистанс 🙌'
                 )
         elif message.successful_payment.invoice_payload == 'plus_coach_thirty_days_sub':
             await bot.send_message(
@@ -246,7 +241,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'К нам присоединился(-ась) @{username}\n\n '
                     f'(с куратором) 🤑🤸\n'
                     f'telegram_id: {telegram_id}\n'
-                    f'Возможно нужен небольшой стартовый ассистанс 🙌'
                 )
 
 

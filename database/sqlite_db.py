@@ -1386,3 +1386,18 @@ class Database:
             return result
         except TypeError or ValueError:
             logging.info('Нет данных или не тот тип', telegram_id)
+
+    async def get_workout_for_test_day(self, test_workout_id: int) -> str:
+        """
+        Returns test workout for user by his test_workout_id.
+        """
+        try:
+            with self.connection:
+                test_workout = self.cursor.execute(
+                    "SELECT test_workout "
+                    "FROM test_workouts "
+                    "WHERE test_day_id = ?", (test_workout_id,)
+                ).fetchone()
+                return test_workout[0]
+        except ValueError:
+            logging.info('Нет такого id для тестового дня!')

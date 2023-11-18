@@ -14,7 +14,7 @@ from handlers.payment import subscription_warnings
 from handlers.freeze import freeze_warnings
 from workout_clr import workout_calendar
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 users.register_users_handlers(dp)
 payment.register_payment_handlers(dp)

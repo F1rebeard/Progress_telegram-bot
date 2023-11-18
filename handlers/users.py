@@ -25,11 +25,11 @@ from keyboards.user_kb import (user_keyboard,
                                exercises_and_activations,
                                create_url_inline_keyboard
                                )
+from config.constants import INSTRUCTION
 from keyboards.profile_kb import categories_keyboard
 from keyboards.admin_kb import admin_keyboard
 from keyboards.athlete_tests_kb import tests_inline_keyboard
 from handlers.registration import Registration
-from handlers.athlete_tests import INSTRUCTION
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar
@@ -38,6 +38,7 @@ from workout_clr.workout_calendar import calendar_callback as \
 class MainMenu(StatesGroup):
     exercises = State()
     abbreviations = State()
+    test_workouts = State()
 
 
 async def start_bot(message: types.Message, state: FSMContext):
@@ -251,11 +252,27 @@ async def show_tests_menu(message: types.Message,
         pass
     else:
         await state.finish()
+    await state.set_state(MainMenu.test_workouts)
     await message.answer(
         text=INSTRUCTION,
         reply_markup=await tests_inline_keyboard()
     )
 
+
+async def choose_test_day(query: types.CallbackQuery):
+    """
+    :param query:
+    """
+    test_days = set(str(i) for i in range(1, 22))
+    if query.data in test_days:
+        test_workout_text = await db.get_workout_for_test_day(
+            test_workout_id=int(query.data)
+        )
+        print(query.data)
+        await query.message.answer(
+            text=test_workout_text
+        )
+        await query.answer()
 
 async def back_to_main_menu(message: types.Message, state: FSMContext):
     """
@@ -430,6 +447,9 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(choose_exercise_category,
                                        lambda query: True,
                                        state=MainMenu.exercises)
+    dp.register_callback_query_handler(choose_test_day,
+                                       lambda query: True,
+                                       state=MainMenu.test_workouts)
     dp.register_message_handler(show_profile_menu, text='👹 Профиль',
                                 state='*')
     dp.register_message_handler(back_to_main_menu, text='⏪ Главное меню',
