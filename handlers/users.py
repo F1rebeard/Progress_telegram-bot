@@ -33,6 +33,7 @@ from handlers.registration import Registration
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar
+from workout_clr.workout_calendar import choosing_warm_up_protocol
 
 
 class MainMenu(StatesGroup):
@@ -268,11 +269,18 @@ async def choose_test_day(query: types.CallbackQuery):
         test_workout_text = await db.get_workout_for_test_day(
             test_workout_id=int(query.data)
         )
-        print(query.data)
+        warm_up = await choosing_warm_up_protocol(wokrout=test_workout_text)
         await query.message.answer(
-            text=test_workout_text
+            text=warm_up,
+            parse_mode=types.ParseMode.HTML,
+            protect_content=True
+        )
+        await query.message.answer(
+            text=test_workout_text,
+            protect_content=True
         )
         await query.answer()
+
 
 async def back_to_main_menu(message: types.Message, state: FSMContext):
     """
