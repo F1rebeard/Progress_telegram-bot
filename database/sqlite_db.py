@@ -1387,6 +1387,23 @@ class Database:
         except TypeError or ValueError:
             logging.info('Нет данных или не тот тип', telegram_id)
 
+    async def get_today_birthday_users(self) -> list:
+        """
+        Return first name last name and nickname of users if it's their
+        birthday today.
+        """
+        try:
+            with self.connection:
+                birthday_users = self.cursor.execute(
+                    "SELECT username, first_name, last_name "
+                    "FROM users "
+                    "WHERE strftime('%m-%d', birthdate) = "
+                    "strftime('%m-%d', 'NOW')"
+                ).fetchall()
+            return birthday_users
+        except TypeError or ValueError:
+            logging.info('Шляпа с ДР!')
+
     async def get_workout_for_test_day(self, test_workout_id: int) -> str:
         """
         Returns test workout for user by his test_workout_id.

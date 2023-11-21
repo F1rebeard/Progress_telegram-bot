@@ -12,6 +12,7 @@ from handlers import (users,
                       aerobic_capacity, gymnastics, metcons, freeze)
 from handlers.payment import subscription_warnings
 from handlers.freeze import freeze_warnings
+from handlers.admin import send_birthday_users
 from workout_clr import workout_calendar
 
 logging.basicConfig(level=logging.DEBUG)
@@ -33,11 +34,12 @@ workout_calendar.register_workout_handelrs(dp)
 
 
 async def scheduler():
-    aioschedule.every(12).hours.do(subscription_warnings)
+    aioschedule.every(24).hours.do(subscription_warnings)
     aioschedule.every(24).hours.do(freeze_warnings)
+    aioschedule.every().day.at("10:00").do(send_birthday_users)
     while True:
         await aioschedule.run_pending()
-        await asyncio.sleep(1)
+        await asyncio.sleep(3600)
 
 
 async def on_startup(_):

@@ -2,7 +2,7 @@ import logging
 import os
 
 from aiogram import types
-from aiogram.utils.exceptions import ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked
 from datetime import datetime
 from aiogram.dispatcher import Dispatcher
 from aiogram.types.message import ContentType
@@ -283,7 +283,7 @@ async def subscription_warnings():
                     'Твоя подписка закончилась 😬😭, скорее возвращайся!',
                     reply_markup=subscription_kb
                 )
-            except ChatNotFound:
+            except ChatNotFound or BotBlocked:
                 logging.info('Нету чата с этим пользователем')
             continue
         for telegram_id in ending_today:
@@ -299,7 +299,7 @@ async def subscription_warnings():
                 await bot.send_message(telegram_id,
                                        'Твоя подписка заканчивается завтра!\n\n'
                                        'Не забудь продлить 🤖')
-            except ChatNotFound:
+            except ChatNotFound or BotBlocked:
                 logging.info('Нету чата с этим пользователем')
             continue
         for telegram_id in ending_in_two_days:
@@ -309,7 +309,7 @@ async def subscription_warnings():
                                        ' послезавтра!\n\n'
                                        'Не забудь продлить 🤖'
                                        )
-            except ChatNotFound:
+            except ChatNotFound or BotBlocked:
                 logging.info('Нету чата с этим пользователем')
             continue
     except ValueError or TypeError:

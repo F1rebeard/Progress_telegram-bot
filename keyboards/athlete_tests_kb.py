@@ -10,7 +10,6 @@ def _create_week(inline_keyboard: InlineKeyboardMarkup, start_day: int):
     Helper function that creates buttons for a week.
     """
     for day in range(start_day, start_day + 7):
-        print(f'callback_data: {day}')
         if day in REST_DAYS:
             inline_keyboard.insert(
                 InlineKeyboardButton(

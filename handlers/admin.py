@@ -47,6 +47,28 @@ class UsersInfo(StatesGroup):
     add_new_user = State()
 
 
+async def send_birthday_users():
+    birthdays = await db.get_today_birthday_users()
+    text_for_one = (f'День Рождения сегодня 🎉🎂✨🍰🥳\n\n'
+                    f'@{birthdays[0][0]}\n'
+                    f'{birthdays[0][1]} {birthdays[0][2]}')
+    text_for_many = f'День Рождения сегодня 🎉🎂✨🍰🥳\n\n'
+    for admin in ADMIN_IDS:
+        for user in birthdays:
+            text_for_many += (f'@{user[0]}\n'
+                              f'{user[1]} {user[2]}\n\n')
+        if len(birthdays) > 1:
+            await bot.send_message(
+                chat_id=admin,
+                text=text_for_many
+            )
+        if len(birthdays) == 1:
+            await bot.send_message(
+                chat_id=admin,
+                text=text_for_one
+            )
+
+
 async def users_management(users_info: list) -> dict:
     """
     Transforms tuple from database to dict to identify user by his telegram_id.
@@ -108,11 +130,17 @@ async def users_data_for_admin():
             len(third_lvl))
 
 
-async def show_administration_tools(message: types.Message):
+async def show_administration_tools(message: types.Message,
+                                    state: FSMContext,) -> None:
     """
      Show admin tools after clicking admin button
     """
     if message.from_user.id in ADMIN_IDS:
+        current_state = await state.get_state()
+        if current_state is None:
+            pass
+        else:
+            await state.finish()
         await message.answer(
             text='Выбери действия, повелитель:',
             reply_markup=admin_tools
@@ -647,7 +675,8 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_message_handler(add_subscription_to_user,
                                 state=UsersInfo.add_subscription)
     dp.register_message_handler(show_administration_tools,
-                                text='🧙 Aдминка')
+                                text='🧙 Aдминка',
+                                state='*')
     dp.register_message_handler(find_users_by_names,
                                 text='👫 Операции с атлетами',
                                 state='*')
