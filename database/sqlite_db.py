@@ -401,6 +401,19 @@ class Database:
         except TypeError or ValueError:
             return 'Пользователь не найден'
 
+    async def start_sub_one_month_for_user(self, telegram_id: int):
+        """
+        Adds 40 days from today's date to new user for start programm.
+        :param telegram_id:
+        :return:
+        """
+        try:
+            with self.connection:
+                self.cursor.execute(
+                    "UPDATE users "
+                    "SET sub"
+                )
+
     # ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЯХ
     async def get_users_id_with_sub(self):
         """

@@ -135,7 +135,8 @@ async def choose_workout_level(query: types.CallbackQuery,
         'first_level': 'Первый',
         'second_level': 'Второй',
         'competition_level': 'Соревнования',
-        'minkaif_level': 'Минкайфа'
+        'minkaif_level': 'Минкайфа',
+        'start_level': 'Старт'
     }
 
     user_answer = level_to_answer.get(query.data)

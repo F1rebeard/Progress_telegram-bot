@@ -8,6 +8,7 @@ CHOOSE_LEVEL_BTN = (
     ('Второй 👹', 'second_level'),
     ('Минкайфа 🦖', 'minkaif_level'),
     ('Соревнования 🥷', 'competition_level'),
+    ('Старт 🚀', 'start_level')
 )
 
 CHOSEN_DAY_BTNS = (
@@ -18,7 +19,9 @@ CHOSEN_DAY_BTNS = (
 
 CHOOSE_SUBSCRIPTION = (
     ('30 дней без куратора 🦁', 'one_month_sub'),
-    ('30 дней с куратором 🐺🦁', 'one_month_sub_plus')
+    ('30 дней с куратором 🐺🦁', 'one_month_sub_plus'),
+    ('"Старт" 30 дней программы 👨‍🚀', 'one_month_start'),
+    ('"Cтарт" полная программа 👨‍🚀🤖‍🚀', 'full_start')
 )
 
 CHOSE_EXERCISE_CATEGORY = (
