@@ -401,7 +401,7 @@ class Database:
         except TypeError or ValueError:
             return 'Пользователь не найден'
 
-    async def start_sub_one_month_for_user(self, telegram_id: int):
+    async def add_one_month_for_start_new_user(self, telegram_id: int):
         """
         Adds 40 days from today's date to new user for start programm.
         :param telegram_id:
@@ -411,8 +411,29 @@ class Database:
             with self.connection:
                 self.cursor.execute(
                     "UPDATE users "
-                    "SET sub"
+                    "SET subscribtion_date = date("
+                    "registration_date , '+40 days') "
+                    "WHERE telegram_id = ?", (telegram_id,)
                 )
+        except TypeError or ValueError:
+            return 'Пользователь не найден'
+
+    async def add_full_start_for_user(self, telegram_id: int):
+        """
+        Adds 105 days for full 'Start' programm for new user.
+        :param telegram_id:
+        """
+        try:
+            with self.connection:
+                self.cursor.execute(
+                    "UPDATE users "
+                    "SET subscribtion_date = date("
+                    "registration_date , '+105 days') "
+                    "WHERE telegram_id = ?", (telegram_id,)
+                )
+        except TypeError or ValueError:
+            return 'Пользователь не найден'
+
 
     # ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЯХ
     async def get_users_id_with_sub(self):

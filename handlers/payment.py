@@ -226,9 +226,6 @@ async def got_payment(message: types.Message, state: FSMContext):
     # подписки Прогресса
     progress_payloads = ('standard_thirty_days_sub',
                          'plus_coach_thirty_days_sub')
-    # подписка Старта
-    start_payloads = ('start_thirty_days_sub',
-                      'start_full_sub')
     payload_type = message.successful_payment.invoice_payload
     print(payload_type)
     if payload_type in progress_payloads:
@@ -296,8 +293,8 @@ async def got_payment(message: types.Message, state: FSMContext):
                 'standard_thirty_days_sub':(
                     f'Оплата прошла успешно 👍\n\n'
                     f'Твоя подписка действует до {subscription_date}\n\n'
-                    f'А теперь нужно закончить регистрацию, это займет буквально '
-                    f'пару минут.\n',
+                    f'А теперь нужно закончить регистрацию, это займет буквально'
+                    f' пару минут.\n',
                     f'К нам присоединился(-ась) @{username}\n\n '
                     f'(без куратора) 🤑🤸\n'
                     f'telegram_id: {telegram_id}\n'
@@ -326,19 +323,64 @@ async def got_payment(message: types.Message, state: FSMContext):
                     chat_id=admin,
                     text=progress_new_sub_messages.get(payload_type)[1]
                 )
-        if payload_type == 'start_thirty_days_sub':
-            if db.user_exists(telegram_id):
-                pass
-                #добавляем n-дней к подписке
-                #меняем статус подписки
-                #меняем статус старта?
-            else:
-                async with state.proxy() as data:
-                    data['telegram_id'] = telegram_id
-                    data['username'] = message.from_user.username
-                    data['registration_date'] = datetime.now().date()
-                await db.add_user(state)
-
+    elif payload_type == 'start_thirty_days_sub':
+        if db.user_exists(telegram_id):
+            pass
+            #добавляем n-дней к подписке
+            #меняем статус подписки
+            #меняем статус старта?
+        else:
+            async with state.proxy() as data:
+                data['telegram_id'] = telegram_id
+                data['username'] = message.from_user.username
+                data['registration_date'] = datetime.now().date()
+            await db.add_user(state)
+            await db.add_one_month_for_start_new_user(telegram_id)
+            await db.activate_subscription_status(telegram_id)
+            await state.set_state(Registration.new_user)
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=f'Оплата прошла успешно 👍\n\n'
+                     f'Ты получаешь доступ к месяцу тренировок по программе'
+                     f' "Старт"\n\n'
+                     f'А теперь нужно закончить регистрацию, это займет '
+                     f'буквально пару минут.\n',
+                reply_markup=registration_button
+            )
+            await state.finish()
+            for admin in ADMIN_IDS:
+                await bot.send_message(
+                    chat_id=admin,
+                    text=f'К нам присоединился(-ась) @{username}\n\n '
+                    f'Первый месяц "Старт"\n'
+                    f'telegram_id: {telegram_id}\n'
+                )
+    elif payload_type == 'start_full_sub':
+        async with state.proxy() as data:
+            data['telegram_id'] = telegram_id
+            data['username'] = message.from_user.username
+            data['registration_date'] = datetime.now().date()
+        await db.add_user(state)
+        await db.add_user(telegram_id)
+        await db.activate_subscription_status(telegram_id)
+        await state.set_state(Registration.new_user)
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=f'Оплата прошла успешно 👍\n\n'
+                 f'Ты получаешь доступ к полной программе тренировок'
+                 f' "Старт"\n\n'
+                 f'А теперь нужно закончить регистрацию, это займет '
+                 f'буквально пару минут.\n',
+            reply_markup=registration_button
+        )
+        await state.finish()
+        for admin in ADMIN_IDS:
+            await bot.send_message(
+                chat_id=admin,
+                text=f'К нам присоединился(-ась) @{username}\n\n '
+                     f'Полная программа "Старт"\n'
+                     f'telegram_id: {telegram_id}\n'
+            )
 
 async def subscription_warnings():
     """
