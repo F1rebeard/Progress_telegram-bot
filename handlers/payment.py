@@ -325,10 +325,30 @@ async def got_payment(message: types.Message, state: FSMContext):
                 )
     elif payload_type == 'start_thirty_days_sub':
         if db.user_exists(telegram_id):
-            pass
-            #добавляем n-дней к подписке
-            #меняем статус подписки
-            #меняем статус старта?
+            # добавляем 30 дней к подписке
+            await db.update_user_subscription(telegram_id)
+            # проверяет статус подписки
+            if not await db.check_subscription_status(telegram_id):
+                # если статус отрицательный, активирует статус
+                await db.activate_subscription_status(telegram_id)
+            subscription_date = await db.get_user_subscription_date(
+                telegram_id)
+            subscription_date = subscription_date.strftime("%d.%m.%Y")
+            user_name = await db.get_user_name(telegram_id)
+            await state.finish()
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=f'Оплата прошла успешно 👍\n\nТвой "Cтарт" активен до'
+                     f'{subscription_date}'
+            )
+            for admin in ADMIN_IDS:
+                await bot.send_message(
+                    chat_id=admin,
+                    text=f'Ещё один месяц Старта у {user_name[0]}'
+                         f' {user_name[1]}\n\n '
+                         f'telegram_id: {telegram_id}\n'
+                         f'username: @{username}'
+                )
         else:
             async with state.proxy() as data:
                 data['telegram_id'] = telegram_id
@@ -362,6 +382,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             data['registration_date'] = datetime.now().date()
         await db.add_user(state)
         await db.add_user(telegram_id)
+        await db.add_full_start_for_user(telegram_id)
         await db.activate_subscription_status(telegram_id)
         await state.set_state(Registration.new_user)
         await bot.send_message(

@@ -109,16 +109,28 @@ async def get_email(message: types.Message, state: FSMContext):
     if re.match(r'^[\w.\-]{1,64}@\w+\.(by|ru|ua|com)$', message.text):
         async with state.proxy() as data:
             data['email'] = message.text
-        await bot.send_message(
-            message.from_user.id,
-            text='Выбери свой уровень для тренировок 🥷',
-            reply_markup=choose_kb
-        )
-        await bot.send_message(
-            message.from_user.id,
-            text='И на этом всё 👍',
-            reply_markup=registration_keyboard)
-        await state.set_state(Registration.training_level)
+        user_level = await db.get_user_level(message.from_user.id)
+        if user_level != 'Cтарт':
+            await bot.send_message(
+                message.from_user.id,
+                text='Выбери свой уровень для тренировок 🥷',
+                reply_markup=choose_kb
+            )
+            await bot.send_message(
+                message.from_user.id,
+                text='И на этом всё 👍',
+                reply_markup=registration_keyboard)
+            await state.set_state(Registration.training_level)
+        else:
+            await bot.send_message(
+                message.from_user.id,
+                text='Регистрация выполнена! Спасибо 🙌\n\n Советую зайти в'
+                     ' профиль 👹, раздел "Биометрика".\n\n Заполни его — эти'
+                     ' данные пригодятся для автоматического подсчета веса на'
+                     ' снарядах и упражнениях в некоторых тестах ㊗️',
+                reply_markup=user_keyboard
+            )
+            await state.finish()
     else:
         await message.reply(text='Введите корректный email')
 
