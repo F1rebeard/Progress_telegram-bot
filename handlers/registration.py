@@ -122,6 +122,9 @@ async def get_email(message: types.Message, state: FSMContext):
                 reply_markup=registration_keyboard)
             await state.set_state(Registration.training_level)
         else:
+            async with state.proxy() as data:
+                data['chosen_date'] = datetime.now().date()
+            await db.user_start_final_registration(state, message.from_user.id)
             await bot.send_message(
                 message.from_user.id,
                 text='Регистрация выполнена! Спасибо 🙌\n\n Советую зайти в'

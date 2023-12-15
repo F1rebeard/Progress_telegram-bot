@@ -38,13 +38,13 @@ plus_coach_price = [
 # 1 месяц cтарт
 start_one_month_price = [
     types.LabeledPrice(label='30 дней программы "Старт"',
-                       amount=600000),
+                       amount=6000),
 ]
 
 # полная программа старта
 start_full_program = [
     types.LabeledPrice(label='Полная программа "Старт"',
-                       amount=1350000),
+                       amount=13500),
 ]
 
 
@@ -138,8 +138,8 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
             chat_id=query.from_user.id,
             title='Полная программа "Старт"',
             description='Открывает доступ к боту с полной программой "Старт"',
-            need_name=True,
-            send_email_to_provider=True,
+            # need_name=True,
+            # send_email_to_provider=True,
             provider_token=PAYMENT_PROVIDER_TOKEN,
             currency='rub',
             prices=start_one_month_price,
@@ -153,7 +153,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                             "description": "'Cтарт' полная программа",
                             "quantity": "1.00",
                             "amount": {
-                                "value": "135000.00",
+                                "value": "135.00",
                                 "currency": "RUB"
                             },
                             "vat_code": 1,
@@ -163,48 +163,52 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                 "capture": True,
             }
         )
+        await state.finish()
+        await query.answer()
     if query.data == 'one_month_start':
         await bot.send_invoice(
             chat_id=query.from_user.id,
             title='30 дней программы "Старт"',
             description='Открывает доступ к боту с программой "Старт", '
                         'на 30 дней ',
-            need_name=True,
-            send_email_to_provider=True,
+            # need_name=True,
+            # send_email_to_provider=True,
             provider_token=PAYMENT_PROVIDER_TOKEN,
             currency='rub',
             prices=start_one_month_price,
             start_parameter='start_thirty_days',
             payload='start_thirty_days_sub',
-            is_flexible=False,
-            provider_data={
-                "receipt": {
-                    "items": [
-                        {
-                            "description": "'Cтарт' 30 дней программы",
-                            "quantity": "1.00",
-                            "amount": {
-                                "value": "6000.00",
-                                "currency": "RUB"
-                            },
-                            "vat_code": 1,
-                        }
-                    ],
-                },
-                "capture": True,
-            }
+            # is_flexible=False,
+            # provider_data={
+            #     "receipt": {
+            #         "items": [
+            #             {
+            #                 "description": "'Cтарт' 30 дней программы",
+            #                 "quantity": "1.00",
+            #                 "amount": {
+            #                     "value": "60.00",
+            #                     "currency": "RUB"
+            #                 },
+            #                 "vat_code": 1,
+            #             }
+            #         ],
+            #     },
+            #     "capture": True,
+            # }
         )
+        await state.finish()
+        await query.answer()
 
 
 async def subscription_pre_checkout(
         pre_checkout_query: types.PreCheckoutQuery,
         state: FSMContext):
-    if not hasattr(pre_checkout_query.order_info, 'email'):
-        return await bot.answer_pre_checkout_query(
-            pre_checkout_query.id,
-            ok=False,
-            error_message='Email не указан'
-        )
+    # if not hasattr(pre_checkout_query.order_info, 'email'):
+    #     return await bot.answer_pre_checkout_query(
+    #         pre_checkout_query.id,
+    #         ok=False,
+    #         error_message='Email не указан'
+    #     )
     await bot.answer_pre_checkout_query(
         pre_checkout_query.id,
         ok=True,
@@ -324,7 +328,7 @@ async def got_payment(message: types.Message, state: FSMContext):
                     text=progress_new_sub_messages.get(payload_type)[1]
                 )
     elif payload_type == 'start_thirty_days_sub':
-        if db.user_exists(telegram_id):
+        if await db.user_exists(telegram_id):
             # добавляем 30 дней к подписке
             await db.update_user_subscription(telegram_id)
             # проверяет статус подписки
@@ -355,6 +359,7 @@ async def got_payment(message: types.Message, state: FSMContext):
                 data['username'] = message.from_user.username
                 data['registration_date'] = datetime.now().date()
             await db.add_user(state)
+            await db.add_start_level_to_new_user(state)
             await db.add_one_month_for_start_new_user(telegram_id)
             await db.activate_subscription_status(telegram_id)
             await state.set_state(Registration.new_user)

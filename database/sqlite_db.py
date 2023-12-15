@@ -60,6 +60,29 @@ class Database:
         except ValueError or TypeError:
             logging.info('Пользователь не найден', telegram_id)
 
+    async def user_start_final_registration(
+            self, state: FSMContext, telegram_id: int) -> None:
+        """
+        Full registration of user.
+        :param state:
+        :return:
+        """
+        try:
+            async with state.proxy() as data:
+                with self.connection:
+                    self.cursor.execute(
+                        "UPDATE users SET "
+                        "first_name = ?, last_name = ?, gender = ?, email = ?,"
+                        " chosen_date = ? "
+                        "WHERE telegram_id = ?", (
+                            data['first_name'], data['last_name'],
+                            data['gender'], data['email'],
+                            data['chosen_date'], telegram_id
+                        )
+                    )
+        except ValueError or TypeError:
+            logging.info('Пользователь не найден', telegram_id)
+
     async def user_exists(self, telegram_id: int) -> bool:
         """
         Check user by his telegram_id if he exists in database.
@@ -90,7 +113,7 @@ class Database:
         try:
             with self.connection:
                 user_info = self.cursor.execute(
-                    "SELECT telegram_id, username "
+                    "SELECT first_name "
                     "FROM users "
                     "WHERE telegram_id = ?", (telegram_id,)
                 ).fetchall()
@@ -522,6 +545,17 @@ class Database:
                     )
         except TypeError or ValueError:
             return logging.info('Пользователь не найден', data['user_id'])
+
+    async def add_start_level_to_new_user(self, state: FSMContext) -> None:
+        try:
+            async with state.proxy() as data:
+                with self.connection:
+                    self.cursor.execute(
+                        "UPDATE users SET level = 'Cтарт' "
+                        "WHERE telegram_id = ?",(data['telegram_id'],)
+                    )
+        except TypeError or ValueError:
+            return logging.info('Пользователь не найден!')
 
     # КАЛЕНДАРЬ ТРЕНИРОВОК
     async def get_workout_for_user(

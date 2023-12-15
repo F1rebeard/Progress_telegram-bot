@@ -92,6 +92,15 @@ async def start_bot(message: types.Message, state: FSMContext):
                     f' продли подписку 😉',
                     reply_markup=user_keyboard
                 )
+            elif await db.user_payed_not_registered(telegram_id):
+                await state.set_state(Registration.new_user)
+                await message.answer(
+                    'Ты так и не закончил регистрацию, это займет пару минут',
+                    reply_markup=registration_button
+                )
+                await message.answer(
+                    'Подписка уже оплачена, просто нужно ответить на'
+                    'на пару вопросов по кнопке выше ☝️')
             else:
                 await message.answer(
                     f'С возвращением!\n\n Твоя подписка заканчивается в '
@@ -102,14 +111,6 @@ async def start_bot(message: types.Message, state: FSMContext):
         except ValueError or TypeError:
             await message.answer('Нету данных о подписке!')
     # условие, что человек оплатил, но не выполнил регистрацию до конца.
-    elif await db.user_payed_not_registered(telegram_id):
-        await state.set_state(Registration.new_user)
-        await message.answer(
-            'Ты так и не закончил регистрацию, это займет пару минут',
-            reply_markup=registration_button
-        )
-        await message.answer('Подписка уже оплачена, просто нужно ответить на'
-                             'на пару вопросов по кнопке выше ☝️')
     else:
         await message.answer(
             f'Привет, {message.from_user.username}\n\n'
