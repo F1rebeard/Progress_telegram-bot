@@ -458,6 +458,7 @@ class Database:
             return 'Пользователь не найден'
 
 
+
     # ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЯХ
     async def get_users_id_with_sub(self):
         """
@@ -554,6 +555,21 @@ class Database:
                         "UPDATE users SET level = 'Cтарт' "
                         "WHERE telegram_id = ?",(data['telegram_id'],)
                     )
+        except TypeError or ValueError:
+            return logging.info('Пользователь не найден!')
+
+    async def get_registration_date(self, telegram_id: int):
+        """
+        Get's registration date for user.
+        """
+        try:
+            with self.connection:
+                reg_date = self.cursor.execute(
+                    "SELECT registration_date "
+                    "FROM users "
+                    "WHERE telegram_id = ?", (telegram_id,)
+                ).fetchone()
+            return datetime.strptime(reg_date[0], "%Y-%m-%d").date()
         except TypeError or ValueError:
             return logging.info('Пользователь не найден!')
 

@@ -87,6 +87,40 @@ async def workout_dates_separation(
     return workout_month_days
 
 
+async def first_day_for_start(telegram_id: int) -> datetime.date:
+    """
+    Gets the first date for "START" program.
+    """
+    sunday: int = 6
+    reg_date: datetime.date = await db.get_registration_date(telegram_id)
+    reg_weekday = reg_date.weekday()
+    print(reg_weekday)
+    # если день регистрации понедельник
+    if reg_weekday == 0:
+        return reg_date
+    else:
+        days_till_monday = sunday - reg_weekday
+        return reg_date + timedelta(days=days_till_monday - 1)
+
+
+async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
+    """
+    Get list of workout dates for "START" program.
+    """
+    start_date = await first_day_for_start(telegram_id)
+
+    sub_date = await db.get_user_subscription_date(telegram_id)
+    days_to_show = (sub_date - start_date).days
+    start_workouts_dates = []
+    print(days_to_show)
+    for day in range(days_to_show + 1):
+        start_workouts_dates.append(
+            start_date + timedelta(days=day)
+        )
+    print(start_workouts_dates)
+    return start_workouts_dates
+
+
 class ChosenDateData(StatesGroup):
     edit_result = State()
 
@@ -105,12 +139,21 @@ class WorkoutCalendar:
         :param int month: Year to use, if None the current month is used.
         :return:
         """
-        workout_days = await workout_dates_separation(
-            workout_dates=await db.workout_dates_chosen_date(
-                telegram_id=telegram_id),
-            chosen_year=year,
-            chosen_month=month,
-        )
+        user_level = await db.get_user_level(telegram_id)
+        if user_level == 'Cтарт':
+            workout_days = await workout_dates_separation(
+                workout_dates=await get_start_workouts_dates(
+                    telegram_id=telegram_id),
+                chosen_year=year,
+                chosen_month=month,
+            )
+        else:
+            workout_days = await workout_dates_separation(
+                workout_dates=await db.workout_dates_chosen_date(
+                    telegram_id=telegram_id),
+                chosen_year=year,
+                chosen_month=month,
+            )
         subscription_date = await db.get_user_subscription_date(telegram_id)
         subscription_date = subscription_date.strftime("%d.%m")
         inline_kb = InlineKeyboardMarkup(row_width=7)
@@ -214,15 +257,18 @@ class WorkoutCalendar:
         inline_kb.add(
             InlineKeyboardButton(
                 'Получить задание 🏋️‍',
-                callback_data=calendar_callback.new("GET_WORKOUT", year, month, 0)
+                callback_data=calendar_callback.new(
+                    "GET_WORKOUT", year, month, 0)
             ),
             InlineKeyboardButton(
                 'Записать результат ✏️',
-                callback_data=calendar_callback.new("EDIT_RESULTS", year, month, 0)
+                callback_data=calendar_callback.new(
+                    "EDIT_RESULTS", year, month, 0)
             ),
             InlineKeyboardButton(
                 'Посмотреть результаты  ️🕵️‍♂',
-                callback_data=calendar_callback.new("VIEW_RESULTS", year, month, 0)
+                callback_data=calendar_callback.new(
+                    "VIEW_RESULTS", year, month, 0)
             )
         )
         return inline_kb

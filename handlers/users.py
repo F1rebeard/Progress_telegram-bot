@@ -32,7 +32,7 @@ from keyboards.athlete_tests_kb import tests_inline_keyboard
 from handlers.registration import Registration
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
-    workout_cal_callback, WorkoutCalendar
+    workout_cal_callback, WorkoutCalendar, get_start_workouts_dates
 from workout_clr.workout_calendar import choosing_warm_up_protocol
 
 
@@ -348,6 +348,7 @@ async def choose_date(
                 )
                 await query.answer()
             else:
+                await get_start_workouts_dates(telegram_id)
                 await query.message.answer(text='В этот день нет тренировки🏖️')
         elif await db.check_freeze_status(telegram_id):
             await query.message.answer(text='Твоя подписка заморожена ❄️',
