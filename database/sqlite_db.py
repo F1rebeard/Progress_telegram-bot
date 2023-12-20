@@ -621,6 +621,17 @@ class Database:
                     result.append(date)
         return result
 
+    async def get_days_of_start(self, days_to_show: int) -> list:
+        """
+        Get list of workout_days from start_workout table for calendar.
+        """
+        with self.connection:
+            workout_days = self.cursor.execute(
+                "SELECT workout_day FROM start_workouts "
+                "WHERE workout_day <= ?", (days_to_show,)
+            ).fetchall()
+            return workout_days
+
     async def collect_workout_dates(self, telegram_id: int) -> list:
         """
         List of workout dates for level of user for workout calendar.

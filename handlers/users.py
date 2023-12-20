@@ -337,7 +337,9 @@ async def choose_date(
         await db.update_chosen_date(query.from_user.id, date.date())
         telegram_id = query.from_user.id
         chosen_date = await db.get_chosen_date(telegram_id)
-        workout_dates = await db.collect_workout_dates(telegram_id)
+        workouts = await db.workout_dates_chosen_date(telegram_id)
+        workout_dates = [
+            datetime.strftime(date, '%Y-%m-%d') for date in workouts]
         if ((await db.check_subscription_status(telegram_id)) and
                 (not await db.check_freeze_status(telegram_id))):
             if chosen_date in workout_dates:

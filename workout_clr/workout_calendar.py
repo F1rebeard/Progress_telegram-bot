@@ -100,7 +100,7 @@ async def first_day_for_start(telegram_id: int) -> datetime.date:
         return reg_date
     else:
         days_till_monday = sunday - reg_weekday
-        return reg_date + timedelta(days=days_till_monday - 1)
+        return reg_date + timedelta(days=days_till_monday)
 
 
 async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
@@ -110,12 +110,13 @@ async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
     start_date = await first_day_for_start(telegram_id)
 
     sub_date = await db.get_user_subscription_date(telegram_id)
-    days_to_show = (sub_date - start_date).days
+    days_diff = (sub_date - start_date).days
+    days_to_show = await db.get_days_of_start(days_diff)
     start_workouts_dates = []
     print(days_to_show)
-    for day in range(days_to_show + 1):
+    for day in days_to_show:
         start_workouts_dates.append(
-            start_date + timedelta(days=day)
+            start_date + timedelta(days=day[0])
         )
     print(start_workouts_dates)
     return start_workouts_dates
