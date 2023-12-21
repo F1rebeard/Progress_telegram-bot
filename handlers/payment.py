@@ -150,7 +150,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                 "receipt": {
                     "items": [
                         {
-                            "description": "'Cтарт' полная программа",
+                            "description": "'Старт' полная программа",
                             "quantity": "1.00",
                             "amount": {
                                 "value": "135.00",
@@ -183,7 +183,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
             #     "receipt": {
             #         "items": [
             #             {
-            #                 "description": "'Cтарт' 30 дней программы",
+            #                 "description": "'Старт' 30 дней программы",
             #                 "quantity": "1.00",
             #                 "amount": {
             #                     "value": "60.00",
@@ -342,7 +342,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             await state.finish()
             await bot.send_message(
                 chat_id=telegram_id,
-                text=f'Оплата прошла успешно 👍\n\nТвой "Cтарт" активен до'
+                text=f'Оплата прошла успешно 👍\n\nТвой "Старт" активен до'
                      f'{subscription_date}'
             )
             for admin in ADMIN_IDS:
@@ -386,7 +386,6 @@ async def got_payment(message: types.Message, state: FSMContext):
             data['username'] = message.from_user.username
             data['registration_date'] = datetime.now().date()
         await db.add_user(state)
-        await db.add_user(telegram_id)
         await db.add_full_start_for_user(telegram_id)
         await db.activate_subscription_status(telegram_id)
         await state.set_state(Registration.new_user)

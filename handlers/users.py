@@ -337,7 +337,12 @@ async def choose_date(
         await db.update_chosen_date(query.from_user.id, date.date())
         telegram_id = query.from_user.id
         chosen_date = await db.get_chosen_date(telegram_id)
-        workouts = await db.workout_dates_chosen_date(telegram_id)
+        print(chosen_date)
+        user_level = await db.get_user_level(telegram_id)
+        if user_level == 'Старт':
+            workouts = await get_start_workouts_dates(telegram_id)
+        else:
+            workouts = await db.workout_dates_chosen_date(telegram_id)
         workout_dates = [
             datetime.strftime(date, '%Y-%m-%d') for date in workouts]
         if ((await db.check_subscription_status(telegram_id)) and
@@ -350,8 +355,8 @@ async def choose_date(
                 )
                 await query.answer()
             else:
-                await get_start_workouts_dates(telegram_id)
                 await query.message.answer(text='В этот день нет тренировки🏖️')
+                await query.answer()
         elif await db.check_freeze_status(telegram_id):
             await query.message.answer(text='Твоя подписка заморожена ❄️',
                                        reply_markup=unfreeze_kb)

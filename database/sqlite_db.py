@@ -552,7 +552,7 @@ class Database:
             async with state.proxy() as data:
                 with self.connection:
                     self.cursor.execute(
-                        "UPDATE users SET level = 'Cтарт' "
+                        "UPDATE users SET level = 'Старт' "
                         "WHERE telegram_id = ?",(data['telegram_id'],)
                     )
         except TypeError or ValueError:
@@ -586,6 +586,8 @@ class Database:
         # inserting the workout table name into database
         try:
             with self.connection:
+                if user_level == 'Старт':
+                    workout = self.cursor.ex
                 workout = self.cursor.execute(
                     f"SELECT workout "
                     f"FROM workouts "
@@ -595,10 +597,26 @@ class Database:
                     return f'В этот день нет тренировки!'
                 else:
                     return f'{workout[0]}'
-        except ValueError:
-            return f'Ошибка значения'
-        except TypeError:
-            return f'Ошибка типа'
+        except ValueError or TypeError:
+            logging.info('Нет такой тренировки!')
+
+    async def get_start_workout_for_user(self, workout_day: int) -> str:
+        """
+        Get workout text for chosen day from start workouts for user.
+        """
+        try:
+            with self.connection:
+                workout = self.cursor.execute(
+                    'SELECT workout_text '
+                    'FROM start_workouts '
+                    'WHERE workout_day = ?', (workout_day,)
+                ).fetchone()
+            if workout is None:
+                return f'В этот день нет тренировки!'
+            else:
+                return f'{workout[0]}'
+        except ValueError or TypeError:
+            logging.info('Нет такой тренировки!')
 
     async def workout_dates_chosen_date(self, telegram_id: int) -> list:
         """

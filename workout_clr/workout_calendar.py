@@ -94,7 +94,6 @@ async def first_day_for_start(telegram_id: int) -> datetime.date:
     sunday: int = 6
     reg_date: datetime.date = await db.get_registration_date(telegram_id)
     reg_weekday = reg_date.weekday()
-    print(reg_weekday)
     # если день регистрации понедельник
     if reg_weekday == 0:
         return reg_date
@@ -107,13 +106,15 @@ async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
     """
     Get list of workout dates for "START" program.
     """
+    # дата начала старта
     start_date = await first_day_for_start(telegram_id)
-
+    # дата окончания подписки
     sub_date = await db.get_user_subscription_date(telegram_id)
+    # количество дней в подписке
     days_diff = (sub_date - start_date).days
+    # дни с тренировками Старта
     days_to_show = await db.get_days_of_start(days_diff)
     start_workouts_dates = []
-    print(days_to_show)
     for day in days_to_show:
         start_workouts_dates.append(
             start_date + timedelta(days=day[0])
@@ -141,7 +142,7 @@ class WorkoutCalendar:
         :return:
         """
         user_level = await db.get_user_level(telegram_id)
-        if user_level == 'Cтарт':
+        if user_level == 'Старт':
             workout_days = await workout_dates_separation(
                 workout_dates=await get_start_workouts_dates(
                     telegram_id=telegram_id),
@@ -331,12 +332,21 @@ class WorkoutCalendar:
         """
         telegram_id = query.from_user.id
         chosen_date = await db.get_chosen_date(telegram_id)
+        user_level = await db.get_user_level(telegram_id)
         if data['act'] == "GET_WORKOUT":
             workout_hashtag = await create_hashtag(telegram_id)
-            chosen_workout = await db.get_workout_for_user(
-                chosen_date,
-                telegram_id
-            )
+            if user_level == 'Старт':
+                first_day = await first_day_for_start(telegram_id)
+                chosen_date = datetime.strptime(chosen_date, '%Y-%m-%d').date()
+                workout_day = (chosen_date - first_day).days
+                chosen_workout = await db.get_start_workout_for_user(
+                    workout_day=workout_day
+                )
+            else:
+                chosen_workout = await db.get_workout_for_user(
+                    chosen_date,
+                    telegram_id
+                )
             chosen_warm_up = await choosing_warm_up_protocol(chosen_workout)
             await query.message.answer(text=chosen_warm_up,
                                        parse_mode=ParseMode.HTML,
