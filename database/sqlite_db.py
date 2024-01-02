@@ -586,8 +586,6 @@ class Database:
         # inserting the workout table name into database
         try:
             with self.connection:
-                if user_level == 'Старт':
-                    workout = self.cursor.ex
                 workout = self.cursor.execute(
                     f"SELECT workout "
                     f"FROM workouts "

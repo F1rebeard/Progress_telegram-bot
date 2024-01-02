@@ -25,27 +25,28 @@ calendar_callback = CallbackData(
 )
 
 
-async def choosing_warm_up_protocol(wokrout: [str, None]) -> [str, None]:
+async def choosing_warm_up_protocol(workout: [str, None]) -> [str, None]:
     """
     Returns warm up protocol string for user depending on protocol number
     in workout string.
     :param wokrout:
     :return:
     """
-    if 'Протокол 1' in wokrout:
-        return WARM_UP_PROTOCOL_1
-    elif 'Протокол 2' in wokrout:
-        return WARM_UP_PROTOCOL_2
-    elif 'Протокол 3' in wokrout:
-        return WARM_UP_PROTOCOL_3
-    elif 'Протокол 4' in wokrout:
-        return WARM_UP_PROTOCOL_4
-    elif 'Протокол 5' in wokrout:
-        return WARM_UP_PROTOCOL_5
-    elif 'Протокол 6' in wokrout:
-        return WARM_UP_PROTOCOL_6
-    else:
-        return f'Нету разминки!'
+    if workout is None:
+        return None
+    protocol_map = {
+        "Протокол 1": WARM_UP_PROTOCOL_1,
+        "Протокол 2": WARM_UP_PROTOCOL_2,
+        "Протокол 3": WARM_UP_PROTOCOL_3,
+        "Протокол 4": WARM_UP_PROTOCOL_4,
+        "Протокол 5": WARM_UP_PROTOCOL_5,
+        "Протокол 6": WARM_UP_PROTOCOL_6
+    }
+    workout = workout.lower()  # convert to lowercase
+    for protocol in protocol_map:
+        if protocol.lower() in workout:
+            return protocol_map[protocol]
+    return "Нету разминки!"
 
 
 async def create_hashtag(telegram_id: int) -> str:
@@ -54,14 +55,22 @@ async def create_hashtag(telegram_id: int) -> str:
     :param telegram_id:
     :return:
     """
-    user_level: str = PROGRESS_LEVELS.get(await db.get_user_level(telegram_id))
+    user_level = await db.get_user_level(telegram_id)
+    user_tag: str = PROGRESS_LEVELS.get(user_level)
     workout_date = datetime.strptime(
         await db.get_chosen_date(telegram_id),
         '%Y-%m-%d'
     )
-    hashtag: str = f'#ур{user_level}' \
-                   f'{WEEKDAYS.get(workout_date.isocalendar().weekday)}' \
-                   f'{workout_date.isocalendar().week}_{workout_date.year}'
+    chosen_date = await db.get_chosen_date(telegram_id)
+    first_day = await first_day_for_start(telegram_id)
+    chosen_date = datetime.strptime(chosen_date, '%Y-%m-%d').date()
+    workout_day = (chosen_date - first_day).days
+    if user_level == 'Старт':
+        hashtag: str = (f'#{user_tag}_день_{workout_day}')
+    else:
+        hashtag: str = f'#ур{user_tag}' \
+                       f'{WEEKDAYS.get(workout_date.isocalendar().weekday)}' \
+                       f'{workout_date.isocalendar().week}_{workout_date.year}'
     return hashtag
 
 
@@ -119,7 +128,6 @@ async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
         start_workouts_dates.append(
             start_date + timedelta(days=day[0])
         )
-    print(start_workouts_dates)
     return start_workouts_dates
 
 

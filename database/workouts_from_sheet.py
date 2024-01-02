@@ -26,8 +26,8 @@ def get_dates_ranges_from_cell(cell_value: str) -> list:
     """
     start, end = cell_value.split('-')
 
-    # текущий год
     current_year = datetime.now().year
+    current_month = datetime.now().month
     # получаем начальную и конечную дату
     start_date = datetime.strptime(f'{start}.{current_year}', '%d.%m.%Y')
     end_date = datetime.strptime(f'{end}.{current_year}', '%d.%m.%Y')
@@ -35,7 +35,9 @@ def get_dates_ranges_from_cell(cell_value: str) -> list:
     # Ensure end date is always after start date
     if end_date < start_date:
         end_date = end_date.replace(year=end_date.year + 1)
-
+    if current_month == 12 and start_date.month == 1:
+        start_date = start_date.replace(year=start_date.year + 1)
+        end_date = end_date.replace(year=end_date.year + 1)
     # Generate the range of dates
     date_range = [(start_date + timedelta(days=x)).strftime('%Y-%m-%d')
                   for x in range((end_date - start_date).days + 1)]

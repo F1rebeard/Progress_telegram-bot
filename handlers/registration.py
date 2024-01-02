@@ -110,7 +110,7 @@ async def get_email(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['email'] = message.text
         user_level = await db.get_user_level(message.from_user.id)
-        if user_level != 'Cтарт':
+        if user_level != 'Старт':
             await bot.send_message(
                 message.from_user.id,
                 text='Выбери свой уровень для тренировок 🥷',

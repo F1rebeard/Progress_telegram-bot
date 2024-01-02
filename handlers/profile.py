@@ -122,6 +122,12 @@ async def choose_category(query: types.CallbackQuery,
             chat_id=query.message.chat.id,
             reply_markup=strength_cpt_kb
         )
+        await query.message.answer(
+            f'Внимание!\n\n'
+            f'Для корректного ввода результатов в этом разделе, сначала'
+            f' необходимо добавить свой вес в разделе "Биометрика" и ПМ'
+            f' выбранного движения в разделе "Сила" или "Гимнастика".'
+        )
         await query.answer()
     elif query.data == 'aerobic_capacity':
         aerobic_kb = await aerobic_inline_keyboard(telegram_id)
