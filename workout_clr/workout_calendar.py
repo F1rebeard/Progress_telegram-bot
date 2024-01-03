@@ -210,7 +210,7 @@ class WorkoutCalendar:
                     if day in workout_days:
                         inline_kb.insert(
                             InlineKeyboardButton(
-                                text=f'🏋️🦁',
+                                text=f'🎄️⛄️',
                                 callback_data=calendar_callback.new(
                                     "DAY", year, month, day
                                 )
@@ -219,7 +219,7 @@ class WorkoutCalendar:
                     else:
                         inline_kb.insert(
                             InlineKeyboardButton(
-                                text=f'🦁',
+                                text=f'⛄️',
                                 callback_data=calendar_callback.new(
                                     "DAY", year, month, day
                                 )
@@ -229,7 +229,7 @@ class WorkoutCalendar:
                 if day in workout_days:
                     inline_kb.insert(
                         InlineKeyboardButton(
-                            text=f'🏋️{day}',
+                            text=f'🎄{day}',
                             callback_data=calendar_callback.new(
                                 "DAY", year, month, day
                             )
