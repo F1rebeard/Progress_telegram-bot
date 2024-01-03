@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from create_bot import bot, db
 from keyboards.user_kb import (
-    choose_levels, choose_kb, registration_keyboard, gender_keyboard,
+    choose_kb, registration_keyboard, gender_keyboard,
     user_keyboard
 )
 
@@ -151,7 +151,6 @@ async def choose_workout_level(query: types.CallbackQuery,
         'second_level': 'Второй',
         'competition_level': 'Соревнования',
         'minkaif_level': 'Минкайфа',
-        'start_level': 'Старт'
     }
 
     user_answer = level_to_answer.get(query.data)

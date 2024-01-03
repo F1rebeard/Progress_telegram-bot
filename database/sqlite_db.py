@@ -577,7 +577,7 @@ class Database:
     async def get_workout_for_user(
             self, date: datetime, telegram_id: int) -> str:
         """
-        get workout by date and level of use
+        Get workout by chosen date and level of user.
         :param telegram_id: user telegram id
         :param date: date of selected workout
         :return: str the workout for selected date
@@ -590,6 +590,28 @@ class Database:
                     f"SELECT workout "
                     f"FROM workouts "
                     f"WHERE date = ? AND level = ?", (date, user_level)
+                ).fetchone()
+                if workout is None:
+                    return f'В этот день нет тренировки!'
+                else:
+                    return f'{workout[0]}'
+        except ValueError or TypeError:
+            logging.info('Нет такой тренировки!')
+
+    async def get_any_level_workout_for_admin(
+            self, date: datetime, level: str) -> str:
+        """
+        Gets the workout of selected level for admin.
+        :param date: chosen date from users.chosen_date
+        :param level: selected via inline_keyboard by admin
+        :return:
+        """
+        try:
+            with self.connection:
+                workout = self.cursor.execute(
+                    f'SELECT workout '
+                    f'FROM workouts '
+                    f'WHERE date = ? AND level = ?',(date, level)
                 ).fetchone()
                 if workout is None:
                     return f'В этот день нет тренировки!'
@@ -634,6 +656,26 @@ class Database:
             for str_date in date_tuple:
                 date = datetime.strptime(str_date, '%Y-%m-%d').date()
                 if two_weeks_before <= date <= user_subscription:
+                    result.append(date)
+        return result
+
+    async def workout_dates_for_admin(self, telegram_id: int) -> list:
+        """
+        Gets list of workout for all level for admin in datetime.datetime form.
+        """
+        admin_subscription = await self.get_user_subscription_date(telegram_id)
+        four_weeks_before = (datetime.now() - timedelta(weeks=4)).date()
+        result = []
+        with self.connection:
+            dates = self.cursor.execute(
+                f"SELECT date "
+                f"FROM workouts "
+                f"WHERE level IN ('Первый', 'Минкайфа')"
+            ).fetchall()
+        for date_tuple in dates:
+            for str_date in date_tuple:
+                date = datetime.strptime(str_date, '%Y-%m-%d').date()
+                if four_weeks_before <= date <= admin_subscription:
                     result.append(date)
         return result
 

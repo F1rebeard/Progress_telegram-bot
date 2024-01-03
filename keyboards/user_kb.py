@@ -8,7 +8,6 @@ CHOOSE_LEVEL_BTN = (
     ('Второй 👹', 'second_level'),
     ('Минкайфа 🦖', 'minkaif_level'),
     ('Соревнования 🥷', 'competition_level'),
-    ('Старт 🚀', 'start_level')
 )
 
 CHOSEN_DAY_BTNS = (

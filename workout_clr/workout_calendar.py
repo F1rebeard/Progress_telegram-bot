@@ -8,7 +8,8 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from create_bot import db
+from create_bot import db, bot
+from keyboards.user_kb import choose_kb
 from config.constants import (WARM_UP_PROTOCOL_1,
                               WARM_UP_PROTOCOL_2,
                               WARM_UP_PROTOCOL_3,
@@ -17,7 +18,8 @@ from config.constants import (WARM_UP_PROTOCOL_1,
                               WARM_UP_PROTOCOL_6,
                               PROGRESS_LEVELS,
                               WEEKDAYS,
-                              RUS_MONTHS)
+                              RUS_MONTHS,
+                              ADMIN_IDS)
 
 
 calendar_callback = CallbackData(
@@ -153,6 +155,13 @@ class WorkoutCalendar:
         if user_level == 'Старт':
             workout_days = await workout_dates_separation(
                 workout_dates=await get_start_workouts_dates(
+                    telegram_id=telegram_id),
+                chosen_year=year,
+                chosen_month=month,
+            )
+        elif telegram_id in ADMIN_IDS:
+            workout_days = await workout_dates_separation(
+                workout_dates=await db.workout_dates_for_admin(
                     telegram_id=telegram_id),
                 chosen_year=year,
                 chosen_month=month,
@@ -342,31 +351,39 @@ class WorkoutCalendar:
         chosen_date = await db.get_chosen_date(telegram_id)
         user_level = await db.get_user_level(telegram_id)
         if data['act'] == "GET_WORKOUT":
-            workout_hashtag = await create_hashtag(telegram_id)
-            if user_level == 'Старт':
-                first_day = await first_day_for_start(telegram_id)
-                chosen_date = datetime.strptime(chosen_date, '%Y-%m-%d').date()
-                workout_day = (chosen_date - first_day).days
-                chosen_workout = await db.get_start_workout_for_user(
-                    workout_day=workout_day
+            if telegram_id in ADMIN_IDS:
+                await bot.send_message(
+                    text='Выбери для какого уровня посмотреть тренировку:',
+                    chat_id=telegram_id,
+                    reply_markup=choose_kb
                 )
             else:
-                chosen_workout = await db.get_workout_for_user(
-                    chosen_date,
-                    telegram_id
-                )
-            chosen_warm_up = await choosing_warm_up_protocol(chosen_workout)
-            await query.message.answer(text=chosen_warm_up,
-                                       parse_mode=ParseMode.HTML,
-                                       protect_content=True)
-            await query.message.answer(text=chosen_workout,
-                                       protect_content=True)
-            await query.message.answer(text=f'Хэштег этой тренировки, чтобы '
-                                            f'поделиться результатом в чатике'
-                                            f'\n\n'
-                                            f'{workout_hashtag}',
-                                       )
-            await query.answer()
+                workout_hashtag = await create_hashtag(telegram_id)
+                if user_level == 'Старт':
+                    first_day = await first_day_for_start(telegram_id)
+                    chosen_date = datetime.strptime(
+                        chosen_date, '%Y-%m-%d').date()
+                    workout_day = (chosen_date - first_day).days
+                    chosen_workout = await db.get_start_workout_for_user(
+                        workout_day=workout_day
+                    )
+                else:
+                    chosen_workout = await db.get_workout_for_user(
+                        chosen_date,
+                        telegram_id
+                    )
+                chosen_warm_up = await choosing_warm_up_protocol(chosen_workout)
+                await query.message.answer(text=chosen_warm_up,
+                                           parse_mode=ParseMode.HTML,
+                                           protect_content=True)
+                await query.message.answer(text=chosen_workout,
+                                           protect_content=True)
+                await query.message.answer(text=f'Хэштег этой тренировки, чтобы'
+                                                f' поделиться результатом'
+                                                f' в чатике\n\n'
+                                                f'{workout_hashtag}',
+                                           )
+                await query.answer()
         elif data['act'] == "EDIT_RESULTS":
             workout_hashtag = await create_hashtag(telegram_id)
             exists, workout_result = await db.check_and_return_workout_result(
@@ -377,7 +394,6 @@ class WorkoutCalendar:
                                                 ' как в чате "Прогресса"\n\n'
                                                 'Хэштег вводить не нужно!')
                 await state.set_state(ChosenDateData.edit_result)
-                await query.answer()
             else:
                 await query.message.answer(
                     text='Уже есть результат за эту тренировку!'
@@ -402,7 +418,7 @@ class WorkoutCalendar:
             await query.message.answer(
                 'Это был заключительный результат'
             )
-            await query.answer()
+        await query.answer()
 
 
 async def add_workout_results(
@@ -431,5 +447,6 @@ async def add_workout_results(
 
 
 def register_workout_handelrs(dp: Dispatcher):
+
     dp.register_message_handler(add_workout_results,
                                 state=ChosenDateData.edit_result)

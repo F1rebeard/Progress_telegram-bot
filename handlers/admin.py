@@ -642,6 +642,35 @@ async def send_message_to_user_via_bot(message: types.Message,
         logging.info('Такого пользователя нету', info['user_id'])
 
 
+async def get_any_workout_for_admin(
+        query: types.CallbackQuery,
+) -> None:
+    """
+    Send a message via bot to the admin with the workout of any level
+    for chosen date.
+    :param query:
+    :return:
+    """
+    levels_from_database = {
+        'first_level': 'Первый',
+        'second_level': 'Второй',
+        'competition_level': 'Соревнования',
+        'minkaif_level': 'Минкайфа',
+    }
+    admin_answer = levels_from_database.get(query.data)
+    telegram_id = query.from_user.id
+    chosen_date = await db.get_chosen_date(telegram_id)
+    chosen_date = datetime.strptime(
+        chosen_date, '%Y-%m-%d').date()
+    workout = await db.get_any_level_workout_for_admin(
+        chosen_date, admin_answer
+    )
+    print(workout)
+    await query.message.edit_text(
+        text=f'Уровень: {levels_from_database.get(query.data)}\n\n' + workout)
+    await query.answer()
+
+
 def register_admin_handlers(dp: Dispatcher):
     """
     Registration of admin handlers
@@ -670,6 +699,8 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(delete_last_week_workouts,
                                        lambda query: True,
                                        state=UsersInfo.delete_workouts)
+    dp.register_callback_query_handler(get_any_workout_for_admin,
+                                       lambda query: True)
     dp.register_message_handler(send_message_to_user_via_bot,
                                 state=UsersInfo.send_message_via_bot)
     dp.register_message_handler(add_subscription_to_user,
