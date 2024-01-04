@@ -22,6 +22,7 @@ from database.workouts_from_sheet import (
     delete_workouts_from_database,
 )
 from create_bot import bot, db
+from workout_clr.workout_calendar import ChosenDateData
 
 load_dotenv()
 
@@ -644,6 +645,7 @@ async def send_message_to_user_via_bot(message: types.Message,
 
 async def get_any_workout_for_admin(
         query: types.CallbackQuery,
+        state: FSMContext
 ) -> None:
     """
     Send a message via bot to the admin with the workout of any level
@@ -665,9 +667,9 @@ async def get_any_workout_for_admin(
     workout = await db.get_any_level_workout_for_admin(
         chosen_date, admin_answer
     )
-    print(workout)
     await query.message.edit_text(
         text=f'Уровень: {levels_from_database.get(query.data)}\n\n' + workout)
+    await state.finish()
     await query.answer()
 
 
@@ -700,7 +702,8 @@ def register_admin_handlers(dp: Dispatcher):
                                        lambda query: True,
                                        state=UsersInfo.delete_workouts)
     dp.register_callback_query_handler(get_any_workout_for_admin,
-                                       lambda query: True)
+                                       lambda query: True,
+                                       state=ChosenDateData.for_admin)
     dp.register_message_handler(send_message_to_user_via_bot,
                                 state=UsersInfo.send_message_via_bot)
     dp.register_message_handler(add_subscription_to_user,

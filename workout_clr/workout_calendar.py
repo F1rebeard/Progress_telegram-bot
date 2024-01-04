@@ -31,7 +31,7 @@ async def choosing_warm_up_protocol(workout: [str, None]) -> [str, None]:
     """
     Returns warm up protocol string for user depending on protocol number
     in workout string.
-    :param wokrout:
+    :param workout:
     :return:
     """
     if workout is None:
@@ -135,6 +135,7 @@ async def get_start_workouts_dates(telegram_id: int) -> list[datetime.date]:
 
 class ChosenDateData(StatesGroup):
     edit_result = State()
+    for_admin = State()
 
 
 class WorkoutCalendar:
@@ -352,6 +353,7 @@ class WorkoutCalendar:
         user_level = await db.get_user_level(telegram_id)
         if data['act'] == "GET_WORKOUT":
             if telegram_id in ADMIN_IDS:
+                await state.set_state(ChosenDateData.for_admin)
                 await bot.send_message(
                     text='Выбери для какого уровня посмотреть тренировку:',
                     chat_id=telegram_id,

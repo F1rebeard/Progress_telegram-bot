@@ -270,7 +270,7 @@ async def choose_test_day(query: types.CallbackQuery):
         test_workout_text = await db.get_workout_for_test_day(
             test_workout_id=int(query.data)
         )
-        warm_up = await choosing_warm_up_protocol(wokrout=test_workout_text)
+        warm_up = await choosing_warm_up_protocol(workout=test_workout_text)
         await query.message.answer(
             text=warm_up,
             parse_mode=types.ParseMode.HTML,
