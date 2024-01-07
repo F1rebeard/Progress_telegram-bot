@@ -275,7 +275,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             for admin in ADMIN_IDS:
                 try:
                     await bot.send_message(
-                        сhat_id=admin,
+                        admin,
                         text=progress_sub_messages.get(payload_type)[1]
                     )
                 except ChatNotFound:
@@ -324,7 +324,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             await state.finish()
             for admin in ADMIN_IDS:
                 await bot.send_message(
-                    chat_id=admin,
+                    admin,
                     text=progress_new_sub_messages.get(payload_type)[1]
                 )
     elif payload_type == 'start_thirty_days_sub':
@@ -347,7 +347,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             )
             for admin in ADMIN_IDS:
                 await bot.send_message(
-                    chat_id=admin,
+                    admin,
                     text=f'Ещё один месяц Старта у {user_name[0]}'
                          f' {user_name[1]}\n\n '
                          f'telegram_id: {telegram_id}\n'

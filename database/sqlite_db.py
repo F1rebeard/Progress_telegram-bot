@@ -106,14 +106,14 @@ class Database:
 
     async def user_payed_not_registered(self, telegram_id):
         """
-        Check if user paid but didn't registered.
+        Check if user paid but didn't register.
         :param telegram_id:
         :return:
         """
         try:
             with self.connection:
                 user_info = self.cursor.execute(
-                    "SELECT first_name "
+                    "SELECT telegram_id, registration_date "
                     "FROM users "
                     "WHERE telegram_id = ?", (telegram_id,)
                 ).fetchall()
