@@ -321,7 +321,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                 text=progress_new_sub_messages.get(payload_type)[0],
                 reply_markup=registration_button
             )
-            await state.finish()
             for admin in ADMIN_IDS:
                 await bot.send_message(
                     admin,
