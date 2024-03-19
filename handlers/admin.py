@@ -50,10 +50,10 @@ class UsersInfo(StatesGroup):
 
 async def send_birthday_users():
     birthdays = await db.get_today_birthday_users()
-    text_for_one = (f'День Рождения сегодня 🎉🎂✨🍰🥳\n\n'
+    text_for_one = (f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
                     f'@{birthdays[0][0]}\n'
                     f'{birthdays[0][1]} {birthdays[0][2]}')
-    text_for_many = f'День Рождения сегодня 🎉🎂✨🍰🥳\n\n'
+    text_for_many = f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
     for admin in ADMIN_IDS:
         for user in birthdays:
             text_for_many += (f'@{user[0]}\n'

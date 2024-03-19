@@ -26,25 +26,25 @@ PAYMENT_PROVIDER_TOKEN = os.getenv('PAYMENT_PROVIDER_TOKEN')
 # 1 месяц без куратора
 standard_price = [
     types.LabeledPrice(label='30 дней без куратора',
-                       amount=300000),
+                       amount=350000),
 ]
 
 # 1 месяц с куратором
 plus_coach_price = [
     types.LabeledPrice(label='30 дней c куратором',
-                       amount=500000),
+                       amount=550000),
 ]
 
 # 1 месяц cтарт
 start_one_month_price = [
     types.LabeledPrice(label='30 дней программы "Старт"',
-                       amount=600000),
+                       amount=650000),
 ]
 
 # полная программа старта
 start_full_program = [
     types.LabeledPrice(label='Полная программа "Старт"',
-                       amount=13500000),
+                       amount=1500000),
 ]
 
 
@@ -87,7 +87,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                             "description": "Подписка на 30 дней без куратора",
                             "quantity": "1.00",
                             "amount": {
-                                "value": "3000.00",
+                                "value": "3500.00",
                                 "currency": "RUB"
                             },
                             "vat_code": 1,
@@ -121,7 +121,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                             "description": "Подписка на 30 дней c куратором",
                             "quantity": "1.00",
                             "amount": {
-                                "value": "5000.00",
+                                "value": "5500.00",
                                 "currency": "RUB"
                             },
                             "vat_code": 1,
@@ -153,7 +153,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                             "description": "'Старт' полная программа",
                             "quantity": "1.00",
                             "amount": {
-                                "value": "13500.00",
+                                "value": "15000.00",
                                 "currency": "RUB"
                             },
                             "vat_code": 1,
@@ -186,7 +186,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                             "description": "'Старт' 30 дней программы",
                             "quantity": "1.00",
                             "amount": {
-                                "value": "6000.00",
+                                "value": "6500.00",
                                 "currency": "RUB"
                             },
                             "vat_code": 1,

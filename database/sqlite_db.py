@@ -1547,12 +1547,16 @@ class Database:
         """
         try:
             with self.connection:
-                birthday_users = self.cursor.execute(
-                    "SELECT username, first_name, last_name "
-                    "FROM users "
-                    "WHERE strftime('%m-%d', birthdate) = "
-                    "strftime('%m-%d', 'NOW')"
-                ).fetchall()
+                with self.connection:
+                    tomorrow_date = (
+                            datetime.now() + timedelta(
+                        days=1)).strftime('%m-%d')
+                    birthday_users = self.cursor.execute(
+                        "SELECT username, first_name, last_name "
+                        "FROM users "
+                        f"WHERE strftime('%m-%d', birthdate) = ?",
+                        (tomorrow_date,)
+                    ).fetchall()
             return birthday_users
         except TypeError or ValueError:
             logging.info('Шляпа с ДР!')
