@@ -15,7 +15,9 @@ from handlers.freeze import freeze_warnings
 from handlers.admin import send_birthday_users
 from workout_clr import workout_calendar
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s %(levelname)s %(message)s",
+                    force=True)
 
 users.register_users_handlers(dp)
 payment.register_payment_handlers(dp)

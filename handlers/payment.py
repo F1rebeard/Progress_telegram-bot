@@ -204,6 +204,7 @@ async def subscription_pre_checkout(
         pre_checkout_query: types.PreCheckoutQuery,
         state: FSMContext):
     if not hasattr(pre_checkout_query.order_info, 'email'):
+        logging.info('Не указан e-mail')
         return await bot.answer_pre_checkout_query(
             pre_checkout_query.id,
             ok=False,
@@ -214,6 +215,8 @@ async def subscription_pre_checkout(
         ok=True,
         error_message='Не получены данные об оплате'
     )
+    logging.info(f'Прошло окно оплаты. '
+                 f'Ожидание платежа {pre_checkout_query.from_user.id}')
     await state.set_state(Registration.payment)
 
 
@@ -231,7 +234,9 @@ async def got_payment(message: types.Message, state: FSMContext):
     progress_payloads = ('standard_thirty_days_sub',
                          'plus_coach_thirty_days_sub')
     payload_type = message.successful_payment.invoice_payload
-    print(payload_type)
+    logging.info(f'Received payment from user {telegram_id}'
+                 f' ({username}) with payload type: {payload_type}')
+    await state.finish()
     if payload_type in progress_payloads:
         # если пользователь уже есть в базе данных
         if await db.user_exists(telegram_id):
@@ -245,7 +250,6 @@ async def got_payment(message: types.Message, state: FSMContext):
             subscription_date = await db.get_user_subscription_date(telegram_id)
             subscription_date = subscription_date.strftime("%d.%m.%Y")
             user_name = await db.get_user_name(telegram_id)
-            await state.finish()
             progress_sub_messages = {
                 'standard_thirty_days_sub':(
                     f'Оплата прошла успешно 👍\n\nТвоя подписка действует до'
@@ -280,10 +284,8 @@ async def got_payment(message: types.Message, state: FSMContext):
                     )
                 except ChatNotFound:
                     logging.info('Чат c админом не найден!')
-                # continue
         else:
-            # пользователя нет
-            # в базе данных
+            # пользователя нет в базе данных
             async with state.proxy() as data:
                 data['telegram_id'] = telegram_id
                 data['username'] = message.from_user.username
@@ -308,8 +310,8 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'Твоя подписка c куратором действует '
                     f'до {subscription_date} \n\n'
                     f'Для назначения куратора свяжись с @uncle_boris \n\n'
-                    f'А теперь нужно закончить регистрацию, это займет буквально '
-                    f'пару минут.\n',
+                    f'А теперь нужно закончить регистрацию,'
+                    f' это займет буквально пару минут.\n',
                     f'К нам присоединился(-ась) @{username}\n\n '
                     f'(с куратором) 🤑🤸\n'
                     f'telegram_id: {telegram_id}\n'
@@ -338,7 +340,6 @@ async def got_payment(message: types.Message, state: FSMContext):
                 telegram_id)
             subscription_date = subscription_date.strftime("%d.%m.%Y")
             user_name = await db.get_user_name(telegram_id)
-            await state.finish()
             await bot.send_message(
                 chat_id=telegram_id,
                 text=f'Оплата прошла успешно 👍\n\nТвой "Старт" активен до'
@@ -352,6 +353,7 @@ async def got_payment(message: types.Message, state: FSMContext):
                          f'telegram_id: {telegram_id}\n'
                          f'username: @{username}'
                 )
+            await state.finish()
         else:
             async with state.proxy() as data:
                 data['telegram_id'] = telegram_id
@@ -478,45 +480,21 @@ async def subscription_warnings():
         logging.info('Нет данных о подписке!')
 
 
-async def subscription_control(telegram_id: int):
-    """
-    :param telegram_id:
-    :return:
-    """
-    # запрашиваем статус подписки
-    sub_status = await db.check_subscription_status(telegram_id)
-    freeze_status = await db.check_freeze_status(telegram_id)
-    if not sub_status:
-    # если статус подписки отрицательный
-    # то выводим сообщение о подписке
-        chat = await bot.get_chat(telegram_id)
-        await bot.send_message(chat_id=chat.id,
-                               text='Твоя подписка закончилась 😞',
-                               reply_markup=subscription_kb)
-    elif freeze_status:
-        chat = await bot.get_chat(telegram_id)
-        await bot.send_message(chat_id=chat.id,
-                               text='Твоя подписка заморожена ⛄',
-                               reply_markup=unfreeze_kb)
-    else:
-        pass
-
-
 def register_payment_handlers(dp: Dispatcher):
     dp.register_pre_checkout_query_handler(
         subscription_pre_checkout,
         lambda query: True,
         state='*'
     )
-    dp.register_message_handler(
-        choose_subscription,
-        text='⏳🈂 Подписка',
-        state='*'
-    )
     dp.register_callback_query_handler(
         pay_for_subscription,
         lambda query: True,
         state=PaymentStatus.Choose
+    )
+    dp.register_message_handler(
+        choose_subscription,
+        text='⏳🈂 Подписка',
+        state='*'
     )
     dp.register_message_handler(
         got_payment,

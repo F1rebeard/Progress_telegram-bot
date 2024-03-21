@@ -50,24 +50,28 @@ class UsersInfo(StatesGroup):
 
 async def send_birthday_users():
     birthdays = await db.get_today_birthday_users()
-    text_for_one = (f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
-                    f'@{birthdays[0][0]}\n'
-                    f'{birthdays[0][1]} {birthdays[0][2]}')
-    text_for_many = f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
-    for admin in ADMIN_IDS:
-        for user in birthdays:
-            text_for_many += (f'@{user[0]}\n'
-                              f'{user[1]} {user[2]}\n\n')
-        if len(birthdays) > 1:
-            await bot.send_message(
-                chat_id=admin,
-                text=text_for_many
-            )
-        if len(birthdays) == 1:
-            await bot.send_message(
-                chat_id=admin,
-                text=text_for_one
-            )
+    logging.info(f'Дни рождения завтра {birthdays}')
+    if len(birthdays) > 0:
+        text_for_one = (f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
+                        f'@{birthdays[0][0]}\n'
+                        f'{birthdays[0][1]} {birthdays[0][2]}')
+        text_for_many = f'День Рождения завтра 🎉🎂✨🍰🥳\n\n'
+        for admin in ADMIN_IDS:
+            for user in birthdays:
+                text_for_many += (f'@{user[0]}\n'
+                                  f'{user[1]} {user[2]}\n\n')
+            if len(birthdays) > 1:
+                await bot.send_message(
+                    chat_id=admin,
+                    text=text_for_many
+                )
+            if len(birthdays) == 1:
+                await bot.send_message(
+                    chat_id=admin,
+                    text=text_for_one
+                )
+    else:
+        pass
 
 
 async def users_management(users_info: list) -> dict:
@@ -98,6 +102,7 @@ async def users_data_for_admin():
     first_lvl = []
     second_lvl = []
     # соревновательный уровень
+    start_lvl = []
     third_lvl = []
     minkaifa_lvl = []
     frozen_users = []
@@ -119,8 +124,11 @@ async def users_data_for_admin():
             minkaifa_lvl.append(user)
         if user[1] == 'Соревнования':
             third_lvl.append(user)
-        if user[3] is True:
+        if user[1] == 'Старт':
+            start_lvl.append(user)
+        if user[3]:
             frozen_users.append(user)
+    logging.info(f'Заморозка у {len(frozen_users)}')
     return (active_users,
             len(frozen_users),
             len(male),
@@ -128,7 +136,8 @@ async def users_data_for_admin():
             len(first_lvl),
             len(second_lvl),
             len(minkaifa_lvl),
-            len(third_lvl))
+            len(third_lvl),
+            len(start_lvl),)
 
 
 async def show_administration_tools(message: types.Message,
@@ -169,7 +178,8 @@ async def find_users_by_names(message: types.Message, state: FSMContext):
                  f'Девушек в Прогрессе - {users_data[3]}\n\n'
                  f'На 1️⃣ уровне - {users_data[4]}\n'
                  f'На 2️⃣ уровне - {users_data[5]}\n'
-                 f'В минкайфе ⛱️  - {users_data[6]}\n'
+                 f'В Минкайфа 🐯🦁  - {users_data[6]}\n'
+                 f'В Старте 👨‍🚀 - {users_data[8]}\n'
                  f'На соревновательном 3️⃣ уровне - {users_data[7]}'
         )
         await message.answer(
@@ -480,11 +490,12 @@ async def actions_under_user(query: types.CallbackQuery,
     :param state:
     :return:
     """
-    async with state.proxy() as info:
+    async with state.proxy() as data:
         if query.data == 'change_level_of_user':
             await state.set_state(UsersInfo.change_level)
             await bot.edit_message_text(
-                text=f'Выберите уровень для пользователя @{info["nickname"]}',
+                text=f'Выберите уровень для пользователя @{data["nickname"]}\n'
+                     f'{data["first_name"]} {data["last_name"]}',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id,
                 reply_markup=choose_kb
@@ -494,7 +505,7 @@ async def actions_under_user(query: types.CallbackQuery,
             await state.set_state(UsersInfo.cancel_subscription)
             await bot.edit_message_text(
                 text=f'Вы хотите отменить подписку '
-                     f'для пользователя @{info["nickname"]} ?',
+                     f'для  {data["first_name"]} {data["last_name"]}?',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id,
                 reply_markup=yes_or_no_inline_kb
@@ -503,7 +514,8 @@ async def actions_under_user(query: types.CallbackQuery,
             await state.set_state(UsersInfo.add_subscription)
             await bot.edit_message_text(
                 text=f'Сколько дней добавить '
-                     f'в подписку для @{info["nickname"]}? ',
+                     f'в подписку для @{data["nickname"]}\n'
+                     f'{data["first_name"]} {data["last_name"]}? ',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
@@ -511,14 +523,16 @@ async def actions_under_user(query: types.CallbackQuery,
             await state.set_state(UsersInfo.send_message_via_bot)
             await bot.edit_message_text(
                 text=f'Напиши текст сообщения, которое будет отправлено '
-                     f'через меня 🤖 для @{info["nickname"]}',
+                     f'через меня 🤖 для @{data["nickname"]}\n'
+                     f'{data["first_name"]} {data["last_name"]}',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
         if query.data == 'freeze_subscription':
             await state.set_state(UsersInfo.freeze_subscription)
             await bot.edit_message_text(
-                text=f'Укажи количество дней заморозки для @{info["nickname"]}',
+                text=f'Укажи количество дней заморозки для @{data["nickname"]} '
+                     f'{data["first_name"]} {data["last_name"]}',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )

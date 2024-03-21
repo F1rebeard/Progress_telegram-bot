@@ -23,6 +23,8 @@ async def freezing_subscription_approval(message: types.Message,
     if message.from_user.id in ADMIN_IDS:
         try:
             async with state.proxy() as info:
+                user_data = await db.get_user_name(
+                    telegram_id=info['user_id'])
                 info['freeze_days'] = int(message.text)
             if info['freeze_days'] <= 0:
                 await message.answer(
@@ -30,7 +32,7 @@ async def freezing_subscription_approval(message: types.Message,
                 )
             else:
                 await message.answer(
-                    f'Заморозить подписку для @{info["nickname"]} '
+                    f'Заморозить подписку для {user_data[0]} {user_data[1]}'
                     f'на {info["freeze_days"]} дней(я)?',
                     reply_markup=yes_or_no_inline_kb
                 )
@@ -47,6 +49,8 @@ async def freeze_subscription(query: types.CallbackQuery,
     :return:
     """
     async with state.proxy() as info:
+        user_data = await db.get_user_name(
+            telegram_id=info['user_id'])
         if query.data == 'yes_action':
             # устанавливаем дату то которой подписка заморожена
             await db.freeze_user_subscription(
@@ -73,7 +77,7 @@ async def freeze_subscription(query: types.CallbackQuery,
             )
             # отправляем сообщение админу об успешной заморозке
             await bot.edit_message_text(
-                f'Подписка для @{info["nickname"]} заморожена!',
+                f'Подписка для {user_data[0]} {user_data[1]} заморожена!',
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
