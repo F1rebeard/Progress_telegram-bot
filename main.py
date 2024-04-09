@@ -13,6 +13,7 @@ from handlers import (users,
 from handlers.payment import subscription_warnings
 from handlers.freeze import freeze_warnings
 from handlers.admin import send_birthday_users
+from handlers.users import start_poll_for_time_in_progress
 from workout_clr import workout_calendar
 
 logging.basicConfig(level=logging.INFO,
@@ -36,12 +37,13 @@ workout_calendar.register_workout_handelrs(dp)
 
 
 async def scheduler():
+    aioschedule.every(15).seconds.do(start_poll_for_time_in_progress)
     aioschedule.every(24).hours.do(subscription_warnings)
     aioschedule.every(24).hours.do(freeze_warnings)
     aioschedule.every(1).day.at("15:00").do(send_birthday_users)
     while True:
         await aioschedule.run_pending()
-        await asyncio.sleep(86400)
+        await asyncio.sleep(1)
 
 
 async def on_startup(_):

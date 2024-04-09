@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from datetime import datetime
 from aiogram import types, Dispatcher
@@ -23,7 +24,9 @@ from keyboards.user_kb import (user_keyboard,
                                registration_button,
                                unfreeze_kb,
                                exercises_and_activations,
-                               create_url_inline_keyboard
+                               create_url_inline_keyboard,
+                               answer_question,
+                               navigation_keyboard
                                )
 from config.constants import INSTRUCTION
 from keyboards.profile_kb import categories_keyboard
@@ -40,6 +43,7 @@ class MainMenu(StatesGroup):
     exercises = State()
     abbreviations = State()
     test_workouts = State()
+    ask_time_question = State()
 
 
 async def start_bot(message: types.Message, state: FSMContext):
@@ -450,6 +454,69 @@ async def draw_full_graph(message: types.Message) -> None:
         os.remove(f'media/{user_id}.png')
 
 
+async def start_poll_for_time_in_progress():
+    """
+    Send a user message to start polling about his time in project.
+    """
+    active_users = await db.get_telegram_ids_of_active_users()
+    answered_users = await db.get_telegram_ids_who_answered()
+    users_to_ask = set(active_users) - set(answered_users)
+    logging.info(f'{users_to_ask}')
+    #for user_id in users_to_ask:
+    await bot.send_message(
+        chat_id=368362025,
+        text='Привет! \n\nМы собираем небольшую статистику'
+             ' по нашему проекту. Ответь пожалуйста на один вопрос 🥹',
+        reply_markup=answer_question
+    )
+
+
+async def ask_time_question(query: types.CallbackQuery,
+                            state: FSMContext) -> None:
+    """
+    Ask about time in project and waiting for answer.
+    """
+    if query.data == 'answer_question':
+        await query.message.answer(
+            'Скажи как долго ты с нами? 🫶🏻🥹❤️‍🩹\n\n'
+            'Напиши полную дату в формате'
+            'ДД.ММ.ГГГГ\n\n Если не помнишь то напиши месяц и год начала'
+            'тренировок в формате ММ.ГГГГ',
+            reply_markup=navigation_keyboard
+        )
+        await state.set_state(MainMenu.ask_time_question)
+        await query.answer()
+
+
+async def get_answer_for_time_question(message: types.Message,
+                                       state: FSMContext):
+    """
+    Receives answer from users and adds answer to database.
+    :param message: answer from user
+    :param state: if answered successfully state is finished.
+    """
+    if re.match(
+        r'^(?:(?:0?[1-9]|[12][0-9]|3[01])\.'
+        r'(?:0?[1-9]|1[0-2])|(?:0?[1-9]|1[0-2]))\.(?:\d{4})$', message.text):
+        try:
+            date = datetime.strptime(message.text, "%d.%m.%Y")
+            formatted_date = date.strftime('%Y-%m-%d')
+        except ValueError:
+            month, year = message.text.split('.')
+            formatted_date = datetime.strptime(
+                f'01.{month}.{year}', '%d.%m.%Y'
+            ).strftime('%Y-%m-%d')
+        await message.answer(f'{formatted_date}')
+        await state.finish()
+    else:
+        await message.answer(
+            'Неверный формат даты!\n\n'
+            'Напиши полную дату в формате'
+            'ДД.ММ.ГГГГ\n\n Если не помнишь то напиши месяц и год начала'
+            'тренировок в формате ММ.ГГГГ'
+        )
+
+
 def register_users_handlers(dp: Dispatcher):
     """
     Registration of user handlers.
@@ -469,6 +536,9 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(choose_test_day,
                                        lambda query: True,
                                        state=MainMenu.test_workouts)
+    dp.register_callback_query_handler(ask_time_question,
+                                       lambda query: True,
+                                       state='*')
     dp.register_message_handler(show_profile_menu, text='👹 Профиль',
                                 state='*')
     dp.register_message_handler(back_to_main_menu, text='⏪ Главное меню',
@@ -488,3 +558,5 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_message_handler(draw_full_graph,
                                 text='🥷🏿☯ Полная характеристика',
                                 state='*')
+    dp.register_message_handler(get_answer_for_time_question,
+                                state=MainMenu.ask_time_question)

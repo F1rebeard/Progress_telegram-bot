@@ -144,6 +144,10 @@ gender_keyboard = create_inline_keyboard(
     (('Женский 🏋🏻‍♀️', 'female'), ('Мужской 🏋🏻', 'male'))
 )
 
+answer_question = create_inline_keyboard(
+    (('Да, с удовольствием отвечу 🦄', 'answer_question'),)
+)
+
 # inline keyboard for choosing level during registration
 choose_kb = create_inline_keyboard(CHOOSE_LEVEL_BTN)
 

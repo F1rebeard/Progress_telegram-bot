@@ -1575,3 +1575,26 @@ class Database:
                 return test_workout[0]
         except ValueError:
             logging.info('Нет такого id для тестового дня!')
+
+    async def get_telegram_ids_of_active_users(self):
+        try:
+            with self.connection:
+                telegram_ids = self.cursor.execute(
+                    "SELECT telegram_id "
+                    "FROM users "
+                    "WHERE  sub_status = True"
+                ).fetchall()
+            return list(user_id[0] for user_id in telegram_ids)
+        except ValueError:
+            logging.info('Нету активных пользователей!')
+
+    async def get_telegram_ids_who_answered(self):
+        try:
+            with self.connection:
+                answered_ids = self.cursor.execute(
+                    "SELECT telegram_id "
+                    "FROM in_progress_from "
+                ).fetchall()
+            return list(user_id[0] for user_id in answered_ids)
+        except ValueError:
+            logging.info('Нету активных пользователей!')
