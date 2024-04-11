@@ -1598,3 +1598,34 @@ class Database:
             return list(user_id[0] for user_id in answered_ids)
         except ValueError:
             logging.info('Нету активных пользователей!')
+
+    async def get_user_gender(self, telegram_id: int) -> str:
+        with self.connection:
+            user_gender = self.cursor.execute(
+                "SELECT gender"
+                " FROM users"
+                " WHERE telegram_id = ?", (telegram_id,)
+            ).fetchone()
+        return user_gender[0]
+
+    async def add_new_data_about_time_in_project(
+            self,
+            telegram_id: int,
+            start_date: str) -> None:
+        gender = await self.get_user_gender(telegram_id)
+        with self.connection:
+            self.cursor.execute(
+                "INSERT INTO in_progress_from(telegram_id, start_date, gender) "
+                "VALUES (?, ?, ?)", (telegram_id, start_date, gender)
+            )
+        logging.info(
+            f'Added new start date {start_date} for user {telegram_id}')
+
+    async def get_data_about_time_in_project(self) -> list:
+        with self.connection:
+            data = self.cursor.execute(
+                "SELECT start_date, gender "
+                "FROM in_progress_from"
+            ).fetchall()
+        logging.info(f'Data: {data}')
+        return data

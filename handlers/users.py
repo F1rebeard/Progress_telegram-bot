@@ -15,7 +15,7 @@ from config.constants import (ACTIVATIONS_BTNS,
                               STRETCHING_BTNS,
                               ABBREVIATIONS_DATA,
                               ADMIN_IDS)
-from graphic.graphic import characteristics_graphic
+from graphic.graphic import characteristics_graphic, months_in_project_histogram
 from graphic.formula import (get_base_profile_data,
                              get_full_profile_data)
 from keyboards.user_kb import (user_keyboard,
@@ -51,6 +51,7 @@ async def start_bot(message: types.Message, state: FSMContext):
     Start a keyboard for users or admins
     """
     telegram_id = message.from_user.id
+    await months_in_project_histogram()
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):
@@ -495,6 +496,7 @@ async def get_answer_for_time_question(message: types.Message,
     :param message: answer from user
     :param state: if answered successfully state is finished.
     """
+    telegram_id = message.from_user.id
     if re.match(
         r'^(?:(?:0?[1-9]|[12][0-9]|3[01])\.'
         r'(?:0?[1-9]|1[0-2])|(?:0?[1-9]|1[0-2]))\.(?:\d{4})$', message.text):
@@ -506,13 +508,17 @@ async def get_answer_for_time_question(message: types.Message,
             formatted_date = datetime.strptime(
                 f'01.{month}.{year}', '%d.%m.%Y'
             ).strftime('%Y-%m-%d')
-        await message.answer(f'{formatted_date}')
+        await db.add_new_data_about_time_in_project(
+            telegram_id, formatted_date
+        )
+        await message.answer(f'Данные добавлены\n\n'
+                             f'Cпасибо, отличных тренировок!')
         await state.finish()
     else:
         await message.answer(
             'Неверный формат даты!\n\n'
-            'Напиши полную дату в формате'
-            'ДД.ММ.ГГГГ\n\n Если не помнишь то напиши месяц и год начала'
+            'Напиши полную дату в формате '
+            'ДД.ММ.ГГГГ\n\n Если не помнишь день, то напиши месяц и год начала'
             'тренировок в формате ММ.ГГГГ'
         )
 

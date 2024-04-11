@@ -1,3 +1,6 @@
+from datetime import date, datetime
+from collections import defaultdict
+
 import numpy as np
 import matplotlib.pyplot as plt
 import mplcyberpunk
@@ -87,4 +90,50 @@ async def characteristics_graphic(values: list, telegram_id: int):
     plt.close()
 
 
+async def months_in_project_histogram():
+    """
+    Creates histogram with time in project for all active users.
+    """
+    data = await db.get_data_about_time_in_project()
+    today = date.today()
+    male_months = defaultdict(int)
+    female_months = defaultdict(int)
 
+    for row in data:
+        start_date = datetime.strptime(row[0], '%Y-%m-%d').date()
+        months = ((today.year - start_date.year) * 12
+                  + today.month - start_date.month)
+        if row[1] == 'Мужской':
+            male_months[months] += 1
+        elif row[1] == 'Женский':
+            female_months[months] += 1
+    plt.figure(figsize=(20, 12))
+    months = range(
+        max(max(male_months.values()), max(female_months.values()) + 1)
+    )
+
+    months = sorted(set(male_months.keys()) | set(female_months.keys()))
+
+    male_values = [male_months.get(month, 0) for month in months]
+    female_values = [female_months.get(month, 0) for month in months]
+
+    plt.bar(months, male_values, color='b', alpha=0.5, label='Парни')
+    plt.bar(months, female_values, color='r', alpha=0.5, bottom=male_values,
+            label='Девушки')
+
+    plt.legend()
+    plt.xlabel('Продолжительность тренировок, в месяцах')
+    plt.ylabel('Кол-во атлетов')
+    plt.title('Гистограмма длительности тренировок в "Прогрессе"')
+
+    # Set x-axis ticks and grid
+    plt.xticks(range(min(months), max(months) + 1))
+    plt.grid(axis='x', linestyle='--')
+
+    # Set y-axis ticks and grid
+    plt.yticks(range(max(max(male_values), max(female_values)) + 1))
+    plt.grid(axis='y', linestyle='--')
+
+    plt.show()
+    plt.savefig(f'/media/time_in_project_hist.png')
+    plt.close()

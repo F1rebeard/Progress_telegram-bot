@@ -37,7 +37,7 @@ workout_calendar.register_workout_handelrs(dp)
 
 
 async def scheduler():
-    aioschedule.every(15).seconds.do(start_poll_for_time_in_progress)
+    aioschedule.every(90).seconds.do(start_poll_for_time_in_progress)
     aioschedule.every(24).hours.do(subscription_warnings)
     aioschedule.every(24).hours.do(freeze_warnings)
     aioschedule.every(1).day.at("15:00").do(send_birthday_users)
