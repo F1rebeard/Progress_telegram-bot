@@ -52,6 +52,7 @@ async def start_bot(message: types.Message, state: FSMContext):
     """
     telegram_id = message.from_user.id
     await months_in_project_histogram()
+    await db.
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):
@@ -463,7 +464,7 @@ async def start_poll_for_time_in_progress():
     answered_users = await db.get_telegram_ids_who_answered()
     users_to_ask = set(active_users) - set(answered_users)
     logging.info(f'{users_to_ask}')
-    #for user_id in users_to_ask:
+    # for user_id in users_to_ask:
     await bot.send_message(
         chat_id=368362025,
         text='Привет! \n\nМы собираем небольшую статистику'
