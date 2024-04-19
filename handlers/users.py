@@ -15,7 +15,10 @@ from config.constants import (ACTIVATIONS_BTNS,
                               STRETCHING_BTNS,
                               ABBREVIATIONS_DATA,
                               ADMIN_IDS)
-from graphic.graphic import characteristics_graphic, months_in_project_histogram
+from graphic.graphic import (characteristics_graphic,
+                             get_users_ages_and_mean_ages,
+                             ages_of_users_histogram
+                             )
 from graphic.formula import (get_base_profile_data,
                              get_full_profile_data)
 from keyboards.user_kb import (user_keyboard,
@@ -52,7 +55,12 @@ async def start_bot(message: types.Message, state: FSMContext):
     """
     telegram_id = message.from_user.id
     #await months_in_project_histogram()
-    await db.get_age_and_mean_age_of_active_users()
+    men_data, women_data = await db.get_birthdate_of_active_users()
+    men_age, men_mean_age = get_users_ages_and_mean_ages(men_data)
+    women_age, women_mean_age = get_users_ages_and_mean_ages(women_data)
+    await ages_of_users_histogram(
+        men_age, women_age, men_mean_age, women_mean_age
+    )
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):

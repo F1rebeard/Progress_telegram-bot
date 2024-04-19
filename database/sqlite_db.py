@@ -1632,7 +1632,7 @@ class Database:
         logging.info(f'Data: {data}')
         return data
 
-    async def get_birthdates_of_active_users(self):
+    async def get_birthdate_of_active_users(self) -> [list, list]:
         """
         Returns birthdates of active users divided by gender.
         """

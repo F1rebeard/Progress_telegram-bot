@@ -1,3 +1,5 @@
+import logging
+
 from datetime import date, datetime
 from collections import defaultdict
 
@@ -135,20 +137,70 @@ async def months_in_project_histogram():
     plt.grid(axis='y', linestyle='--')
 
     plt.show()
-    plt.savefig(f'/media/time_in_project_hist.png')
+    plt.savefig(f'../media/time_in_project_hist.png')
     plt.close()
 
 
-def get_men_and_women_ages_and_mean_ages(data: list)
+def get_users_ages_and_mean_ages(data: list) -> [int, list]:
+    """
+    Takes lists of birthdate of users and create a list of ages and mean age
+    of users from data.
+    """
+    users_age = []
+    today = date.today()
+    for birthdate in data:
+        if birthdate[0]:
+            age = int(
+                (today.year - datetime.strptime(birthdate[0],
+                                                '%Y-%m-%d').date().year)
+            )
+            users_age.append(age)
+        else:
+            pass
+    logging.info(f'Mean age {np.mean(users_age)}')
+    return users_age, np.mean(users_age)
 
-# for birthdate in data:
-#     if birthdate[0]:
-#         age = int(
-#             (today.year - datetime.strptime(birthdate[0],
-#                                             '%Y-%m-%d').date().year)
-#         )
-#         men_age.append(age)
-#     else:
-#         pass
-# logging.info(f'Mean age {np.mean(men_age)}')
-# return men_age, np.mean(men_age)
+
+async def ages_of_users_histogram(men_ages: list,
+                                  women_ages: list,
+                                  men_mean_age: float,
+                                  women_mean_age: float):
+    """
+    Creates 2 histograms for men and users ages.
+    """
+    men_histogram = defaultdict(int)
+    women_histogram = defaultdict(int)
+
+    # Populate the histograms
+    for age in men_ages:
+        men_histogram[age] += 1
+    for age in women_ages:
+        women_histogram[age] += 1
+
+    # Plot the histograms
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    men_ages_sorted = sorted(men_histogram.keys())
+    ax1.set_xticks(ticks=[i for i in range(0, 55, 2)], minor=True)
+    ax1.seax1.set_xticklabels(labels=[i for i in range(0, 55, 2)], rotation=45)
+    ax1.bar(
+        men_histogram.keys(),
+        men_histogram.values(),
+        align='center',
+    )
+    ax1.set_title('Парни')
+    ax1.set_xlabel('Возраст')
+    ax1.set_ylabel('Кол-во атлетов')
+    ax1.annotate(f'Cредний возраст: {men_mean_age:.0f} лет', xy=(0.8, 0.9),
+                 xycoords='axes fraction', fontsize=8)
+
+    ax2.bar(women_histogram.keys(), women_histogram.values(), align='center')
+    ax2.set_title('Девушки')
+    ax2.set_xlabel('Возраст')
+    ax2.set_ylabel('Кол-во атлетов')
+    ax2.annotate(f'Cредний возраст: {women_mean_age:.0f} лет', xy=(0.8, 0.9),
+                 xycoords='axes fraction', fontsize=8)
+
+    plt.tight_layout()
+    plt.savefig(f'media/user_ages.png')
+    plt.show()
