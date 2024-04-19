@@ -137,3 +137,18 @@ async def months_in_project_histogram():
     plt.show()
     plt.savefig(f'/media/time_in_project_hist.png')
     plt.close()
+
+
+def get_men_and_women_ages_and_mean_ages(data: list)
+
+# for birthdate in data:
+#     if birthdate[0]:
+#         age = int(
+#             (today.year - datetime.strptime(birthdate[0],
+#                                             '%Y-%m-%d').date().year)
+#         )
+#         men_age.append(age)
+#     else:
+#         pass
+# logging.info(f'Mean age {np.mean(men_age)}')
+# return men_age, np.mean(men_age)

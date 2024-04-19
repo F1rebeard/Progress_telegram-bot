@@ -2,7 +2,7 @@ import logging
 import sqlite3 as sql
 import numpy as np
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from aiogram.dispatcher import FSMContext
 
 
@@ -1632,21 +1632,23 @@ class Database:
         logging.info(f'Data: {data}')
         return data
 
-    async def get_age_and_mean_age_of_men(self):
+    async def get_birthdates_of_active_users(self):
         """
-        Returns mean age of men.
+        Returns birthdates of active users divided by gender.
         """
-        today = datetime.now().date()
+        today = date.today()
         men_age = []
         with self.connection:
-            data = self.cursor.execute(
+            men_data = self.cursor.execute(
                 "SELECT birthdate "
                 "FROM users "
-                "WHERE gender = 'Мужской'"
+                "WHERE gender = 'Мужской' AND "
+                "sub_status is TRUE"
             ).fetchall()
-        for birthdate in data:
-            age = int((birthdate - today).year)
-            men_age.append(age)
-        logging.info(f'Age: {men_age}')
-        logging.info(f'Mean age {np.mean(men_age)}')
-        return men_age, np.mean(men_age)it add
+            women_data = self.cursor.execute(
+                "SELECT birthdate "
+                "FROM users "
+                "WHERE gender = 'Женский' AND "
+                "sub_status is TRUE"
+            ).fetchall()
+        return men_data, women_data
