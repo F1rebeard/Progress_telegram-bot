@@ -29,12 +29,6 @@ class Questions(StatesGroup):
     general = State()
 
 
-async def prepare_weekly_data(
-        user_id: int,
-        week_id: str,
-        sta
-)
-
 async def start_questions_about_workout_week(state: FSMContext):
     """
     Starts the question sequence about he passing week workouts.
@@ -50,8 +44,7 @@ async def start_questions_about_workout_week(state: FSMContext):
         await state.set_state(Questions.workouts_volume)
 
 
-async def ask_about_workout_volume(query: types.CallbackQuery,
-                                   state: FSMContext):
+async def ask_about_workout_volume(query: types.CallbackQuery):
     if query.data == 'do_the_answers':
         await query.message.edit_text(
             'Оцените объем нагрузки на этой неделе:',
@@ -68,7 +61,7 @@ async def get_volume_and_ask_for_results(query: types.CallbackQuery,
     if query.data.startswith('select_'):
         user_answer = int(query.data.split('_')[1])
         async with state.proxy() as data:
-            data['wrkt_volume'] = user_answer
+            data['volume'] = user_answer
             await query.message.edit_text(
                 'Окей\n\n'
                 'Оцените то, насколько субъективно'
@@ -123,7 +116,7 @@ async def get_reduce_and_ask_for_fatigue(query: types.CallbackQuery,
     if query.data.startswith('select_'):
         user_answer = int(query.data.split('_')[1])
         async with state.proxy() as data:
-            data['reduce'] = user_answer
+            data['reducing'] = user_answer
             await query.message.edit_text(
                 'Окей\n\n'
                 'Оцените уровень своего утомления и мышечной боли:',
@@ -169,4 +162,14 @@ async def get_general_and_add_data(query: types.CallbackQuery,
         user_answer = int(query.data.split('_')[1])
         async with state.proxy() as data:
             data['general'] = user_answer
+        await db.add_data_to_weekly_table(query.from_user.id, state)
+        await state.finish()
+        await query.message.edit_text('Данные добавлены!\n\n'
+                                      'Спасибо за уделенное время!'
+                                      'Графики своей активности можешь '
+                                      'посмотреть в профиле!')
+        await query.answer()
 
+
+def register_question_handlers(dp: Dispatcher):
+    dp.register_message_handler()

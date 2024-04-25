@@ -1636,8 +1636,6 @@ class Database:
         """
         Returns birthdates of active users divided by gender.
         """
-        today = date.today()
-        men_age = []
         with self.connection:
             men_data = self.cursor.execute(
                 "SELECT birthdate "
@@ -1653,4 +1651,25 @@ class Database:
             ).fetchall()
         return men_data, women_data
 
-    async def add_data_to_weekly_table(self,):
+    async def add_data_to_weekly_table(self,
+                                       user_id: int,
+                                       state: FSMContext):
+        # Get the current date
+        today = datetime.date.today()
+        # Get the week number and year
+        week_number = str(today.isocalendar()[1])
+        year = str(today.year)
+        week_id = f'{week_number}_{year}'
+        user_level = await self.get_user_level(user_id)
+        async with state.proxy() as data:
+            with self.connection:
+                self.cursor.execute(
+                    "INSERT INTO weekly(week_id, user_id, user_level,"
+                    "volume, results, scaling, reducing, fatigue, recovery,"
+                    "general) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,)",
+                    (week_id, user_id, user_level, data['volume'],
+                     data['results'], data['scaling'], data['reducing'],
+                     data['fatigue'], data['recovery'], data['general'])
+                )
+        logging.info('Data added to database!')
