@@ -1652,3 +1652,5 @@ class Database:
                 "sub_status is TRUE"
             ).fetchall()
         return men_data, women_data
+
+    async def add_data_to_weekly_table(self,):

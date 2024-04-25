@@ -471,7 +471,7 @@ async def start_poll_for_time_in_progress():
     active_users = await db.get_telegram_ids_of_active_users()
     answered_users = await db.get_telegram_ids_who_answered()
     users_to_ask = set(active_users) - set(answered_users)
-    logging.info(f'{users_to_ask}')
+    logging.info(f'Users to ask: {users_to_ask}')
     # for user_id in users_to_ask:
     await bot.send_message(
         chat_id=368362025,

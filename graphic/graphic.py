@@ -179,27 +179,30 @@ async def ages_of_users_histogram(men_ages: list,
 
     # Plot the histograms
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-
-    men_ages_sorted = sorted(men_histogram.keys())
-    ax1.set_xticks(ticks=[i for i in range(0, 55, 2)], minor=True)
-    ax1.seax1.set_xticklabels(labels=[i for i in range(0, 55, 2)], rotation=45)
     ax1.bar(
         men_histogram.keys(),
         men_histogram.values(),
         align='center',
     )
+    ax1.set_xticks(range(min(men_histogram.keys()),
+                     max(men_histogram.keys()) + 1, 2))
+    ax1.set_yticks(range(min(men_histogram.values()),
+                     max(men_histogram.values()) + 1))
     ax1.set_title('Парни')
     ax1.set_xlabel('Возраст')
     ax1.set_ylabel('Кол-во атлетов')
-    ax1.annotate(f'Cредний возраст: {men_mean_age:.0f} лет', xy=(0.8, 0.9),
+    ax1.annotate(f'Cредний возраст: {men_mean_age:.0f} лет', xy=(0.66, 0.9),
                  xycoords='axes fraction', fontsize=8)
+    ax1.grid(axis='y', linestyle='--')
 
     ax2.bar(women_histogram.keys(), women_histogram.values(), align='center')
     ax2.set_title('Девушки')
     ax2.set_xlabel('Возраст')
     ax2.set_ylabel('Кол-во атлетов')
-    ax2.annotate(f'Cредний возраст: {women_mean_age:.0f} лет', xy=(0.8, 0.9),
+    ax2.annotate(f'Cредний возраст: {women_mean_age:.0f} лет', xy=(0.66, 0.9),
                  xycoords='axes fraction', fontsize=8)
+    mplcyberpunk.add_glow_effects(ax1)
+    mplcyberpunk.add_glow_effects(ax2)
 
     plt.tight_layout()
     plt.savefig(f'media/user_ages.png')
