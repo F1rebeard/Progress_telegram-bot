@@ -1655,7 +1655,7 @@ class Database:
                                        user_id: int,
                                        state: FSMContext):
         # Get the current date
-        today = datetime.date.today()
+        today = datetime.now().date()
         # Get the week number and year
         week_number = str(today.isocalendar()[1])
         year = str(today.year)
@@ -1667,7 +1667,7 @@ class Database:
                     "INSERT INTO weekly(week_id, user_id, user_level,"
                     "volume, results, scaling, reducing, fatigue, recovery,"
                     "general) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,)",
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (week_id, user_id, user_level, data['volume'],
                      data['results'], data['scaling'], data['reducing'],
                      data['fatigue'], data['recovery'], data['general'])

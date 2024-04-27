@@ -205,7 +205,7 @@ answer_question = create_inline_keyboard(
 
 # inline keyboards for questions about the workout week
 answer_week = create_inline_keyboard(
-    (('Рассказать о прошедшей неделе', 'do_the_answers'))
+    (('Рассказать о прошедшей неделе', 'do_the_answers'),)
 )
 
 question_1 = create_inline_keyboard(QUESTION_1)

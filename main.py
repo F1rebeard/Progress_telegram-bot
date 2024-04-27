@@ -7,18 +7,21 @@ from aiogram import executor
 from create_bot import dp
 from handlers import (users,
                       admin, registration,
-                      payment, biometrics,
+                      payment, biometrics, questions,
                       strength, profile, power, strength_capacity,
                       aerobic_capacity, gymnastics, metcons, freeze)
 from handlers.payment import subscription_warnings
 from handlers.freeze import freeze_warnings
 from handlers.admin import send_birthday_users
 from handlers.users import start_poll_for_time_in_progress
+from handlers.questions import start_questions_about_workout_week
 from workout_clr import workout_calendar
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s",
                     force=True)
+
+questions.register_question_handlers(dp)
 
 users.register_users_handlers(dp)
 payment.register_payment_handlers(dp)
@@ -36,8 +39,10 @@ profile.register_profile_handlers(dp)
 workout_calendar.register_workout_handelrs(dp)
 
 
+
+
 async def scheduler():
-    aioschedule.every(90).seconds.do(start_poll_for_time_in_progress)
+    #aioschedule.every(90).seconds.do(start_questions_about_workout_week)
     aioschedule.every(24).hours.do(subscription_warnings)
     aioschedule.every(24).hours.do(freeze_warnings)
     aioschedule.every(1).day.at("15:00").do(send_birthday_users)

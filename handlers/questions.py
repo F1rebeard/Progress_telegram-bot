@@ -29,28 +29,30 @@ class Questions(StatesGroup):
     general = State()
 
 
-async def start_questions_about_workout_week(state: FSMContext):
+async def start_questions_about_workout_week():
     """
     Starts the question sequence about he passing week workouts.
     """
-    users_to_ask = [368362025,]
+    users_to_ask = [368362025]
     for user in users_to_ask:
-        await bot.send_message('Привет!\n\n'
-                         'Ответь пожалуйста на пару вопросов о тренировках'
-                         'почти прошедшей недели 🤖',
-                         chat_id=user,
-                         reply_markup=answer_week
+        await bot.send_message(
+            text='Привет!\n\n'
+            'Ответь пожалуйста на пару вопросов о тренировках'
+            'этой недели 🤖',
+            chat_id=user,
+            reply_markup=answer_week
         )
-        await state.set_state(Questions.workouts_volume)
 
 
-async def ask_about_workout_volume(query: types.CallbackQuery):
+async def ask_about_workout_volume(query: types.CallbackQuery,
+                                   state: FSMContext):
     if query.data == 'do_the_answers':
         await query.message.edit_text(
             'Оцените объем нагрузки на этой неделе:',
             reply_markup=question_1
         )
         await query.answer()
+        await state.set_state(Questions.workouts_volume)
 
 
 async def get_volume_and_ask_for_results(query: types.CallbackQuery,
@@ -172,4 +174,42 @@ async def get_general_and_add_data(query: types.CallbackQuery,
 
 
 def register_question_handlers(dp: Dispatcher):
-    dp.register_message_handler()
+    dp.register_callback_query_handler(
+        ask_about_workout_volume,
+        lambda query: True
+    )
+    dp.register_callback_query_handler(
+        get_volume_and_ask_for_results,
+        lambda query: True,
+        state=Questions.workouts_volume
+    )
+    dp.register_callback_query_handler(
+        get_results_and_ask_for_scaling,
+        lambda query: True,
+        state=Questions.self_results
+    )
+    dp.register_callback_query_handler(
+        get_scaling_and_ask_for_reducing,
+        lambda query: True,
+        state=Questions.scaling
+    )
+    dp.register_callback_query_handler(
+        get_reduce_and_ask_for_fatigue,
+        lambda query: True,
+        state=Questions.reduce
+    )
+    dp.register_callback_query_handler(
+        get_fatigue_and_ask_about_recovery,
+        lambda query: True,
+        state=Questions.fatigue
+    )
+    dp.register_callback_query_handler(
+        get_recovery_and_ask_for_general,
+        lambda query: True,
+        state=Questions.recovery
+    )
+    dp.register_callback_query_handler(
+        get_general_and_add_data,
+        lambda query: True,
+        state=Questions.general
+    )

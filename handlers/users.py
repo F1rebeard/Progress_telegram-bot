@@ -36,6 +36,7 @@ from keyboards.profile_kb import categories_keyboard
 from keyboards.admin_kb import admin_keyboard
 from keyboards.athlete_tests_kb import tests_inline_keyboard
 from handlers.registration import Registration
+from handlers.questions import start_questions_about_workout_week, Questions
 from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar, get_start_workouts_dates
@@ -54,13 +55,14 @@ async def start_bot(message: types.Message, state: FSMContext):
     Start a keyboard for users or admins
     """
     telegram_id = message.from_user.id
+    await start_questions_about_workout_week()
     #await months_in_project_histogram()
-    men_data, women_data = await db.get_birthdate_of_active_users()
-    men_age, men_mean_age = get_users_ages_and_mean_ages(men_data)
-    women_age, women_mean_age = get_users_ages_and_mean_ages(women_data)
-    await ages_of_users_histogram(
-        men_age, women_age, men_mean_age, women_mean_age
-    )
+    # men_data, women_data = await db.get_birthdate_of_active_users()
+    # men_age, men_mean_age = get_users_ages_and_mean_ages(men_data)
+    # women_age, women_mean_age = get_users_ages_and_mean_ages(women_data)
+    # await ages_of_users_histogram(
+    #     men_age, women_age, men_mean_age, women_mean_age
+    # )
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):
