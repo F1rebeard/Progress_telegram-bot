@@ -11,12 +11,19 @@ from aiogram.utils.exceptions import ChatNotFound
 from dotenv import load_dotenv
 
 from config.constants import ADMIN_IDS
+from graphic.graphic import (user_weekly_dynamic_graph,
+                             levels_weekly_dynamic_graph,
+                             get_users_ages_and_mean_ages,
+                             ages_of_users_histogram,
+                             months_in_project_histogram
+                             )
 from keyboards.admin_kb import (admin_tools,
                                 users_info_inline_kb,
                                 user_action_inline_kb,
                                 yes_or_no_inline_kb)
-from keyboards.user_kb import choose_kb
+from keyboards.user_kb import choose_kb, question_1
 from handlers.users import back_to_main_menu
+from handlers.questions import Questions
 from database.workouts_from_sheet import (
     get_data_from_google_sheet,
     delete_workouts_from_database,
@@ -151,6 +158,41 @@ async def show_administration_tools(message: types.Message,
             pass
         else:
             await state.finish()
+        # preparing graph with ages of users
+        men_data, women_data = await db.get_birthdate_of_active_users()
+        men_age, men_mean_age = get_users_ages_and_mean_ages(men_data)
+        women_age, women_mean_age = get_users_ages_and_mean_ages(women_data)
+        await ages_of_users_histogram(
+            men_age, women_age, men_mean_age, women_mean_age
+        )
+
+        # months in projects vote results
+        await months_in_project_histogram()
+
+        # weekly dynamic for all users by levels
+        await levels_weekly_dynamic_graph()
+
+        # sending photos with graphics
+        await bot.send_photo(
+            chat_id=message.from_user.id,
+            photo=open(f'media/users_ages.png', 'rb'),
+            caption='Статистика по возрастам'
+        )
+        await bot.send_photo(
+            chat_id=message.from_user.id,
+            photo=open(f'media/time_in_project_hist.png', 'rb'),
+            caption='Продолжительность подписки в "Прогрессе"'
+        )
+        await bot.send_photo(
+            chat_id=message.from_user.id,
+            photo=open(f'media/levels_weekly.png', 'rb'),
+            caption='Еженедельная динамика по уровням'
+        )
+        # removing files
+        os.remove(f'media/users_ages.png')
+        os.remove(f'media/time_in_project_hist.png')
+        os.remove(f'media/levels_weekly.png')
+
         await message.answer(
             text='Выбери действия, повелитель:',
             reply_markup=admin_tools
@@ -501,7 +543,7 @@ async def actions_under_user(query: types.CallbackQuery,
                 reply_markup=choose_kb
             )
             await query.answer()
-        if query.data == 'cancel_subscription':
+        elif query.data == 'cancel_subscription':
             await state.set_state(UsersInfo.cancel_subscription)
             await bot.edit_message_text(
                 text=f'Вы хотите отменить подписку '
@@ -510,7 +552,7 @@ async def actions_under_user(query: types.CallbackQuery,
                 chat_id=query.message.chat.id,
                 reply_markup=yes_or_no_inline_kb
             )
-        if query.data == 'add_subscription':
+        elif query.data == 'add_subscription':
             await state.set_state(UsersInfo.add_subscription)
             await bot.edit_message_text(
                 text=f'Сколько дней добавить '
@@ -519,7 +561,7 @@ async def actions_under_user(query: types.CallbackQuery,
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
-        if query.data == 'send_message_via_bot':
+        elif query.data == 'send_message_via_bot':
             await state.set_state(UsersInfo.send_message_via_bot)
             await bot.edit_message_text(
                 text=f'Напиши текст сообщения, которое будет отправлено '
@@ -528,7 +570,7 @@ async def actions_under_user(query: types.CallbackQuery,
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
-        if query.data == 'freeze_subscription':
+        elif query.data == 'freeze_subscription':
             await state.set_state(UsersInfo.freeze_subscription)
             await bot.edit_message_text(
                 text=f'Укажи количество дней заморозки для @{data["nickname"]} '
@@ -536,7 +578,15 @@ async def actions_under_user(query: types.CallbackQuery,
                 message_id=query.message.message_id,
                 chat_id=query.message.chat.id
             )
-
+        elif query.data == 'weekly_dynamic':
+            await user_weekly_dynamic_graph(telegram_id=data['user_id'])
+            await bot.send_photo(
+                chat_id=query.message.chat.id,
+                photo=open(f'media/{data["user_id"]}_weekly.png', 'rb'),
+                caption='Еженедельная динамика для выбранного пользователя'
+            )
+            os.remove(f'media/{data["user_id"]}_weekly.png')
+            await query.answer()
 
 async def change_level_of_user(query: types.CallbackQuery, state: FSMContext):
     """

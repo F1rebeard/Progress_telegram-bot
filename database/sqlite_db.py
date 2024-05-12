@@ -1,16 +1,16 @@
 import logging
 import sqlite3 as sql
-import numpy as np
+from datetime import datetime, timedelta
 
-from datetime import datetime, timedelta, date
 from aiogram.dispatcher import FSMContext
+
 
 
 class Database:
     def __init__(self, db_file):
         self.connection = sql.connect(db_file)
         self.cursor = self.connection.cursor()
-        print('Database is online!')
+        logging.info(f'Database is UP!')
 
     # NEW USER REGISTRATION
     async def add_user(self, state: FSMContext) -> None:
@@ -459,8 +459,6 @@ class Database:
         except TypeError or ValueError:
             return 'Пользователь не найден'
 
-
-
     # ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЯХ
     async def get_users_id_with_sub(self):
         """
@@ -555,7 +553,7 @@ class Database:
                 with self.connection:
                     self.cursor.execute(
                         "UPDATE users SET level = 'Старт' "
-                        "WHERE telegram_id = ?",(data['telegram_id'],)
+                        "WHERE telegram_id = ?", (data['telegram_id'],)
                     )
         except TypeError or ValueError:
             return logging.info('Пользователь не найден!')
@@ -613,7 +611,7 @@ class Database:
                 workout = self.cursor.execute(
                     f'SELECT workout '
                     f'FROM workouts '
-                    f'WHERE date = ? AND level = ?',(date, level)
+                    f'WHERE date = ? AND level = ?', (date, level)
                 ).fetchone()
                 if workout is None:
                     return f'В этот день нет тренировки!'
@@ -1629,7 +1627,6 @@ class Database:
                 "SELECT start_date, gender "
                 "FROM in_progress_from"
             ).fetchall()
-        logging.info(f'Data: {data}')
         return data
 
     async def get_birthdate_of_active_users(self) -> [list, list]:
@@ -1654,22 +1651,58 @@ class Database:
     async def add_data_to_weekly_table(self,
                                        user_id: int,
                                        state: FSMContext):
-        # Get the current date
         today = datetime.now().date()
         # Get the week number and year
-        week_number = str(today.isocalendar()[1])
-        year = str(today.year)
-        week_id = f'{week_number}_{year}'
+        week_number = int(today.isocalendar()[1])
+        year = int(today.year)
+        logging.info(f'Current year: {year} and week nmb {week_number}')
         user_level = await self.get_user_level(user_id)
         async with state.proxy() as data:
             with self.connection:
                 self.cursor.execute(
-                    "INSERT INTO weekly(week_id, user_id, user_level,"
-                    "volume, results, scaling, reducing, fatigue, recovery,"
-                    "general) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (week_id, user_id, user_level, data['volume'],
-                     data['results'], data['scaling'], data['reducing'],
-                     data['fatigue'], data['recovery'], data['general'])
+                    "INSERT INTO weekly(user_level, user_id, week, the_year,"
+                    "results, scaling, fatigue) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (user_level, user_id, week_number, year,
+                     data['results'], data['scaling'], data['fatigue'])
                 )
         logging.info('Data added to database!')
+
+    async def get_users_who_answered_about_this_week(self):
+        today = datetime.now().date()
+        # Get the week number and year
+        week = int(today.isocalendar()[1])
+        year = int(today.year)
+        with self.connection:
+            users = self.cursor.execute(
+                "SELECT user_id "
+                "FROM weekly "
+                "WHERE week = ? AND the_year = ?", (week, year)
+            ).fetchall()
+        users_id = [item[0] for item in users]
+        logging.info(f'Answered users: {users_id}')
+        return users_id
+
+    async def get_weekly_dynamic_for_user(self, telegram_id):
+        with self.connection:
+            user_data = self.cursor.execute(
+                "SELECT week, the_year, results, scaling, fatigue "
+                "FROM weekly "
+                "WHERE user_id = ? "
+                "ORDER BY the_year, week", (telegram_id,)
+            ).fetchall()
+        logging.info(f'User data for graphics {user_data}')
+        return user_data
+
+    async def get_weekly_dynamic_for_level(self, level: str):
+        with self.connection:
+            level_data = self.cursor.execute(
+                "SELECT week, the_year, "
+                "AVG(results) AS mean_res, AVG(scaling) AS mean_scal, "
+                "AVG(fatigue) AS mean_fatigue "
+                "FROM weekly "
+                "WHERE user_level = ? "
+                "GROUP BY week, the_year", (level,)
+            ).fetchall()
+        logging.info(f'Дата для уровня {level} получена')
+        return level_data

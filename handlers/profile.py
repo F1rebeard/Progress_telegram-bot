@@ -2,6 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from create_bot import db, bot
+from handlers.users import MainMenu
 from handlers.strength import StrengthData
 from handlers.power import PowerData
 from handlers.aerobic_capacity import AerobicData
@@ -9,6 +10,7 @@ from handlers.gymnastics import GymnasticsData
 from handlers.metcons import MetconsData
 from handlers.strength_capacity import StrengthCapacityData, weight_for_movement
 from handlers.biometrics import BiometricsData
+
 from keyboards.user_kb import create_inline_keyboard, profile_keyboard_2
 from keyboards.profile_kb import (
     biometrics_inline_btns,
@@ -1109,5 +1111,4 @@ async def choose_category(query: types.CallbackQuery,
 
 def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(choose_category,
-                                       lambda query: True,
-                                       state='*')
+                                       state=MainMenu.profile)

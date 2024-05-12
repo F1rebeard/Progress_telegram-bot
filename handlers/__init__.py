@@ -9,4 +9,3 @@ from handlers import aerobic_capacity
 from handlers import gymnastics
 from handlers import profile
 from handlers import freeze
-from handlers import questions

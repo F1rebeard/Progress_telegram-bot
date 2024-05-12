@@ -11,6 +11,7 @@ ACTIONS_WITH_CHOSEN_USERS = (
     ('⚛ Сменить уровень', 'change_level_of_user'),
     ('🆗 Добавить подписку', 'add_subscription'),
     ('🥶 Заморозить подписку', 'freeze_subscription'),
+    ('📈 Еженедельная динамика', 'weekly_dynamic'),
     ('🤬 Отменить подписку', 'cancel_subscription'),
     ('💬 Отправить сообщение', 'send_message_via_bot'),
 )
@@ -88,7 +89,6 @@ async def users_info_inline_kb(chosen_users: list) -> InlineKeyboardMarkup:
                     callback_data=user_info[0]
                 )
             )
-            print(user_info[0])
         else:
             keyboard.add(
                 InlineKeyboardButton(
@@ -97,6 +97,5 @@ async def users_info_inline_kb(chosen_users: list) -> InlineKeyboardMarkup:
                     callback_data=user_info[0]
                 )
             )
-            print(user_info[0])
     return keyboard
 

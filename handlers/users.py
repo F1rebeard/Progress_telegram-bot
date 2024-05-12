@@ -1,12 +1,12 @@
 import logging
 import os
 import re
-
 from datetime import datetime
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.callback_data import CallbackData
 
 from config.constants import (ACTIVATIONS_BTNS,
                               EXERCISES_BTNS,
@@ -15,12 +15,18 @@ from config.constants import (ACTIVATIONS_BTNS,
                               STRETCHING_BTNS,
                               ABBREVIATIONS_DATA,
                               ADMIN_IDS)
-from graphic.graphic import (characteristics_graphic,
-                             get_users_ages_and_mean_ages,
-                             ages_of_users_histogram
-                             )
+from config.constants import INSTRUCTION
+from create_bot import bot, db
 from graphic.formula import (get_base_profile_data,
                              get_full_profile_data)
+from graphic.graphic import (characteristics_graphic,
+                             user_weekly_dynamic_graph,
+                             months_in_project_histogram
+                             )
+from handlers.registration import Registration
+from keyboards.admin_kb import admin_keyboard
+from keyboards.athlete_tests_kb import tests_inline_keyboard
+from keyboards.profile_kb import categories_keyboard
 from keyboards.user_kb import (user_keyboard,
                                profile_keyboard_1,
                                subscription_kb,
@@ -28,16 +34,7 @@ from keyboards.user_kb import (user_keyboard,
                                unfreeze_kb,
                                exercises_and_activations,
                                create_url_inline_keyboard,
-                               answer_question,
-                               navigation_keyboard
                                )
-from config.constants import INSTRUCTION
-from keyboards.profile_kb import categories_keyboard
-from keyboards.admin_kb import admin_keyboard
-from keyboards.athlete_tests_kb import tests_inline_keyboard
-from handlers.registration import Registration
-from handlers.questions import start_questions_about_workout_week, Questions
-from create_bot import bot, db
 from workout_clr.workout_calendar import calendar_callback as \
     workout_cal_callback, WorkoutCalendar, get_start_workouts_dates
 from workout_clr.workout_calendar import choosing_warm_up_protocol
@@ -48,6 +45,17 @@ class MainMenu(StatesGroup):
     abbreviations = State()
     test_workouts = State()
     ask_time_question = State()
+    profile = State()
+
+
+class Questions(StatesGroup):
+    workouts_volume = State()
+    self_results = State()
+    scaling = State()
+    reduce = State()
+    fatigue = State()
+    recovery = State()
+    general = State()
 
 
 async def start_bot(message: types.Message, state: FSMContext):
@@ -55,14 +63,7 @@ async def start_bot(message: types.Message, state: FSMContext):
     Start a keyboard for users or admins
     """
     telegram_id = message.from_user.id
-    await start_questions_about_workout_week()
-    #await months_in_project_histogram()
-    # men_data, women_data = await db.get_birthdate_of_active_users()
-    # men_age, men_mean_age = get_users_ages_and_mean_ages(men_data)
-    # women_age, women_mean_age = get_users_ages_and_mean_ages(women_data)
-    # await ages_of_users_histogram(
-    #     men_age, women_age, men_mean_age, women_mean_age
-    # )
+    await months_in_project_histogram()
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):
@@ -80,12 +81,13 @@ async def start_bot(message: types.Message, state: FSMContext):
             # Если являяется админом
             if telegram_id in ADMIN_IDS:
                 await message.answer(
-                    'Привет, повелитель {0.first_name}!'.format(message.from_user),
+                    'Привет, повелитель {0.first_name}!'.format(
+                        message.from_user),
                     reply_markup=admin_keyboard
                 )
             elif await db.check_freeze_status(telegram_id):
                 await message.answer(text='Твоя подписка заморожена ❄️',
-                                           reply_markup=unfreeze_kb)
+                                     reply_markup=unfreeze_kb)
             # Проверка срока подписки
             elif days_till_payment < 0:
                 await message.answer(
@@ -257,11 +259,18 @@ async def show_profile_menu(message: types.Message,
         pass
     else:
         await state.finish()
+    await user_weekly_dynamic_graph(telegram_id=message.from_user.id)
+    await bot.send_photo(
+        chat_id=message.from_user.id,
+        photo=open(f'media/{message.from_user.id}_weekly.png', 'rb')
+    )
+    os.remove(f'media/{message.from_user.id}_weekly.png')
     await message.answer('Вы зашли в свой профиль, где вы можете посмотреть'
                          ' и редактировать свои результаты и параметры.',
                          reply_markup=profile_keyboard_1)
     await message.answer('Выберите категорию для просмотра:',
                          reply_markup=categories_keyboard)
+    await state.set_state(MainMenu.profile)
 
 
 async def show_tests_menu(message: types.Message,
@@ -368,7 +377,7 @@ async def choose_date(
             if chosen_date in workout_dates:
                 await query.message.answer(
                     text=f'Выбранный день - {date.strftime("%d.%m.%Y")}\n'
-                    f'Действия:',
+                         f'Действия:',
                     reply_markup=await WorkoutCalendar().chosen_day()
                 )
                 await query.answer()
@@ -393,6 +402,7 @@ async def show_categories(message: types.Message,
     :return:
     """
     await state.finish()
+    await state.set_state(MainMenu.profile)
     await bot.send_message(message.from_user.id,
                            f'{"Категории" : ^10}',
                            reply_markup=categories_keyboard)
@@ -423,12 +433,13 @@ async def draw_base_graph(message: types.Message) -> None:
             'Базовый график характеристик на основе результатов тестовых '
             'недель:'
         )
+        user_info = await db.get_user_name(user_id)
         await characteristics_graphic(base_user_values, user_id)
         await bot.send_photo(
             chat_id=message.from_user.id,
-            photo=open(f'media/{user_id}.png', 'rb')
+            photo=open(f'media/{user_info[0]} {user_info[1]}.png', 'rb')
         )
-        os.remove(f'media/{user_id}.png')
+        os.remove(f'media/{user_info[0]} {user_info[1]}.png')
 
 
 async def draw_full_graph(message: types.Message) -> None:
@@ -458,80 +469,13 @@ async def draw_full_graph(message: types.Message) -> None:
             'Общий график характеристик на основе твоих результатов по всем '
             'категориям\n\nГрафик сейчас будет, джаст э момуемент'
         )
+        user_info = await db.get_user_name(user_id)
         await characteristics_graphic(full_user_values, user_id)
         await bot.send_photo(
             chat_id=message.from_user.id,
-            photo=open(f'media/{user_id}.png', 'rb')
+            photo=open(f'media/{user_info[0]} {user_info[1]}.png', 'rb')
         )
-        os.remove(f'media/{user_id}.png')
-
-
-async def start_poll_for_time_in_progress():
-    """
-    Send a user message to start polling about his time in project.
-    """
-    active_users = await db.get_telegram_ids_of_active_users()
-    answered_users = await db.get_telegram_ids_who_answered()
-    users_to_ask = set(active_users) - set(answered_users)
-    logging.info(f'Users to ask: {users_to_ask}')
-    # for user_id in users_to_ask:
-    await bot.send_message(
-        chat_id=368362025,
-        text='Привет! \n\nМы собираем небольшую статистику'
-             ' по нашему проекту. Ответь пожалуйста на один вопрос 🥹',
-        reply_markup=answer_question
-    )
-
-
-async def ask_time_question(query: types.CallbackQuery,
-                            state: FSMContext) -> None:
-    """
-    Ask about time in project and waiting for answer.
-    """
-    if query.data == 'answer_question':
-        await query.message.answer(
-            'Скажи как долго ты с нами? 🫶🏻🥹❤️‍🩹\n\n'
-            'Напиши полную дату в формате'
-            'ДД.ММ.ГГГГ\n\n Если не помнишь то напиши месяц и год начала'
-            'тренировок в формате ММ.ГГГГ',
-            reply_markup=navigation_keyboard
-        )
-        await state.set_state(MainMenu.ask_time_question)
-        await query.answer()
-
-
-async def get_answer_for_time_question(message: types.Message,
-                                       state: FSMContext):
-    """
-    Receives answer from users and adds answer to database.
-    :param message: answer from user
-    :param state: if answered successfully state is finished.
-    """
-    telegram_id = message.from_user.id
-    if re.match(
-        r'^(?:(?:0?[1-9]|[12][0-9]|3[01])\.'
-        r'(?:0?[1-9]|1[0-2])|(?:0?[1-9]|1[0-2]))\.(?:\d{4})$', message.text):
-        try:
-            date = datetime.strptime(message.text, "%d.%m.%Y")
-            formatted_date = date.strftime('%Y-%m-%d')
-        except ValueError:
-            month, year = message.text.split('.')
-            formatted_date = datetime.strptime(
-                f'01.{month}.{year}', '%d.%m.%Y'
-            ).strftime('%Y-%m-%d')
-        await db.add_new_data_about_time_in_project(
-            telegram_id, formatted_date
-        )
-        await message.answer(f'Данные добавлены\n\n'
-                             f'Cпасибо, отличных тренировок!')
-        await state.finish()
-    else:
-        await message.answer(
-            'Неверный формат даты!\n\n'
-            'Напиши полную дату в формате '
-            'ДД.ММ.ГГГГ\n\n Если не помнишь день, то напиши месяц и год начала'
-            'тренировок в формате ММ.ГГГГ'
-        )
+        os.remove(f'media/{user_info[0]} {user_info[1]}.png')
 
 
 def register_users_handlers(dp: Dispatcher):
@@ -541,9 +485,6 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_message_handler(start_bot,
                                 commands=['start'],
                                 state='*')
-    dp.register_callback_query_handler(choose_date,
-                                       workout_cal_callback.filter(),
-                                       state='*')
     dp.register_callback_query_handler(send_description,
                                        lambda query: True,
                                        state=MainMenu.abbreviations)
@@ -553,8 +494,8 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(choose_test_day,
                                        lambda query: True,
                                        state=MainMenu.test_workouts)
-    dp.register_callback_query_handler(ask_time_question,
-                                       lambda query: True,
+    dp.register_callback_query_handler(choose_date,
+                                       workout_cal_callback.filter(),
                                        state='*')
     dp.register_message_handler(show_profile_menu, text='👹 Профиль',
                                 state='*')
@@ -575,5 +516,4 @@ def register_users_handlers(dp: Dispatcher):
     dp.register_message_handler(draw_full_graph,
                                 text='🥷🏿☯ Полная характеристика',
                                 state='*')
-    dp.register_message_handler(get_answer_for_time_question,
-                                state=MainMenu.ask_time_question)
+

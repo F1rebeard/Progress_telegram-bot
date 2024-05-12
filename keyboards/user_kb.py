@@ -32,60 +32,27 @@ CHOSE_EXERCISE_CATEGORY = (
 )
 
 QUESTION_1 = (
-    ('Очень низкий', 'select_1'),
-    ('Низкий', 'select_2'),
-    ('Средний', 'select_3'),
-    ('Высокий', 'select_4'),
-    ('Очень высокий', 'select_5')
-)
-
-QUESTION_2 = (
     ('Вообще не доволен', 'select_1'),
-    ('Не доволен', 'select_2'),
+    ('Скорее доволен', 'select_2'),
     ('Скорее, доволен', 'select_3'),
     ('Доволен', 'select_4'),
     ('Очень доволен', 'select_5')
 )
 
+QUESTION_2 = (
+    ('Нет, всё как есть', 'select_1'),
+    ('Масштабировал или убрал 1-2 задания', 'select_2'),
+    ('Масштабировал или убрал 3-4 задания', 'select_3'),
+    ('Масштабировал или убрал больше 4 заданий', 'select_4')
+)
+
 QUESTION_3 = (
-    ('Нет, всё как есть', 'select_1'),
-    ('Масштабировал 1–2 задания', 'select_2'),
-    ('Масштабировал 3–4 задания', 'select_3'),
-    ('Масштабировал больше 4 заданий', 'select_4')
-
-)
-
-QUESTION_4 = (
-    ('Нет, всё как есть', 'select_1'),
-    ('Убрал 1 задание', 'select_2'),
-    ('Убрал 2–3 задания', 'select_3'),
-    ('Убрал больше 4 заданий', 'select_4')
-)
-
-QUESTION_5 = (
     ('Мышцы болят так, что сложно в обычной жизни', 'select_1'),
     ('Мышцы болят', 'select_2'),
     ('Мышцы слегка побаливают', 'select_3'),
     ('Мышцы немного ощущаются, а так норм', 'select_4'),
     ('Отличное самочувствие, свежий, ничего не болит', 'select_5')
 )
-
-QUESTION_6 = (
-    ('Всё плохо', 'select_1'),
-    ('Скорее плохо, чем хорошо', 'select_2'),
-    ('Скорее хорошо, чем плохо', 'select_3'),
-    ('Всё хорошо', 'select_4'),
-    ('Просто отлично', 'select_5')
-)
-
-QUESTION_7 = (
-    ('Плохо', 'select_1'),
-    ('Неважно', 'select_2'),
-    ('Нормально', 'select_3'),
-    ('Хорошо', 'select_4'),
-    ('Огонь', 'select_5')
-)
-
 
 # main menu buttons
 workout_button = KeyboardButton('🏋 Тренировки')
@@ -106,7 +73,6 @@ full_graphic_button = KeyboardButton('🥷🏿☯ Полная характер�
 base_graphic_button = KeyboardButton('🐯🐾 Базовая характеристика')
 add_profile_button = KeyboardButton('🔄 Редактировать')
 categories_button = KeyboardButton('🦄️ Категории')
-
 
 user_keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
                                     row_width=2).add(
@@ -211,10 +177,6 @@ answer_week = create_inline_keyboard(
 question_1 = create_inline_keyboard(QUESTION_1)
 question_2 = create_inline_keyboard(QUESTION_2)
 question_3 = create_inline_keyboard(QUESTION_3)
-question_4 = create_inline_keyboard(QUESTION_4)
-question_5 = create_inline_keyboard(QUESTION_5)
-question_6 = create_inline_keyboard(QUESTION_6)
-question_7 = create_inline_keyboard(QUESTION_7)
 
 # inline keyboard for choosing level during registration
 choose_kb = create_inline_keyboard(CHOOSE_LEVEL_BTN)

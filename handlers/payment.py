@@ -1,23 +1,22 @@
 import logging
 import os
+from datetime import datetime
 
 from aiogram import types
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked
-from datetime import datetime
 from aiogram.dispatcher import Dispatcher
-from aiogram.types.message import ContentType
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types.message import ContentType
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked
 from dotenv import load_dotenv
 
-from create_bot import bot, db
 from config.constants import ADMIN_IDS
+from create_bot import bot, db
+from handlers.registration import Registration
 from keyboards.user_kb import (choose_sub,
                                registration_button,
                                subscription_kb,
-                               user_keyboard,
-                               unfreeze_kb)
-from handlers.registration import Registration
+                               user_keyboard)
 
 load_dotenv()
 
@@ -96,7 +95,7 @@ async def pay_for_subscription(query: types.CallbackQuery, state: FSMContext):
                 },
                 "capture": True,
             }
-            )
+        )
         await state.finish()
         await query.answer()
     if query.data == 'one_month_sub_plus':
@@ -251,7 +250,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             subscription_date = subscription_date.strftime("%d.%m.%Y")
             user_name = await db.get_user_name(telegram_id)
             progress_sub_messages = {
-                'standard_thirty_days_sub':(
+                'standard_thirty_days_sub': (
                     f'Оплата прошла успешно 👍\n\nТвоя подписка действует до'
                     f'{subscription_date}',
                     f'{user_name[0]} {user_name[1]} оплатил(а) подписку '
@@ -259,7 +258,7 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'telegram_id: {telegram_id}\n'
                     f'username: @{username}\n\n'
                 ),
-                'plus_coach_thirty_days_sub':(
+                'plus_coach_thirty_days_sub': (
                     f'Оплата прошла успешно👍\n\n '
                     f'Твоя подписка c куратором действует '
                     f'до {subscription_date} \n\n'
@@ -296,7 +295,7 @@ async def got_payment(message: types.Message, state: FSMContext):
             subscription_date = await db.get_user_subscription_date(telegram_id)
             subscription_date = subscription_date.strftime("%d.%m.%Y")
             progress_new_sub_messages = {
-                'standard_thirty_days_sub':(
+                'standard_thirty_days_sub': (
                     f'Оплата прошла успешно 👍\n\n'
                     f'Твоя подписка действует до {subscription_date}\n\n'
                     f'А теперь нужно закончить регистрацию, это займет буквально'
@@ -305,7 +304,7 @@ async def got_payment(message: types.Message, state: FSMContext):
                     f'(без куратора) 🤑🤸\n'
                     f'telegram_id: {telegram_id}\n'
                 ),
-                'plus_coach_thirty_days_sub':(
+                'plus_coach_thirty_days_sub': (
                     f'Оплата прошла успешно👍\n\n '
                     f'Твоя подписка c куратором действует '
                     f'до {subscription_date} \n\n'
@@ -377,8 +376,8 @@ async def got_payment(message: types.Message, state: FSMContext):
                 await bot.send_message(
                     chat_id=admin,
                     text=f'К нам присоединился(-ась) @{username}\n\n '
-                    f'Первый месяц "Старт"\n'
-                    f'telegram_id: {telegram_id}\n'
+                         f'Первый месяц "Старт"\n'
+                         f'telegram_id: {telegram_id}\n'
                 )
     elif payload_type == 'start_full_sub':
         async with state.proxy() as data:

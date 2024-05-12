@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -217,7 +218,7 @@ async def clean_result(message: types.Message,
 
 
 async def power_clean_result(message: types.Message,
-                      state: FSMContext) -> None:
+                             state: FSMContext) -> None:
     """
     Adds power clean result to power table today date and users telegram_id.
     :param message:
