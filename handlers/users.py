@@ -63,7 +63,6 @@ async def start_bot(message: types.Message, state: FSMContext):
     Start a keyboard for users or admins
     """
     telegram_id = message.from_user.id
-    await months_in_project_histogram()
     # проверяем если юзер админ
     # проверяем есть ли юзер в базе данных
     if await db.user_exists(telegram_id):

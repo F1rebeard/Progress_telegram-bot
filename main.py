@@ -40,12 +40,25 @@ workout_calendar.register_workout_handelrs(dp)
 
 async def scheduler():
     aioschedule.every(24).hours.do(subscription_warnings)
+    aioschedule.every(1).day.at("20:10").do(start_poll_for_time_in_progress)
     aioschedule.every(1).day.at("20:30").do(start_poll_for_time_in_progress)
     aioschedule.every(24).hours.do(freeze_warnings)
     aioschedule.every(1).day.at("15:00").do(send_birthday_users)
-    aioschedule.every().saturday.at("11:10", "16:10", "20:45").do(
+
+    # Schedule the task to run on Saturdays
+    aioschedule.every().saturday.at("11:10").do(
         start_questions_about_workout_week)
-    aioschedule.every().sunday.at("11:10", "16:10", "20:45").do(
+    aioschedule.every().saturday.at("16:10").do(
+        start_questions_about_workout_week)
+    aioschedule.every().saturday.at("20:45").do(
+        start_questions_about_workout_week)
+
+    # Schedule the task to run on Sundays
+    aioschedule.every().sunday.at("11:10").do(
+        start_questions_about_workout_week)
+    aioschedule.every().sunday.at("16:10").do(
+        start_questions_about_workout_week)
+    aioschedule.every().sunday.at("20:45").do(
         start_questions_about_workout_week)
 
     while True:

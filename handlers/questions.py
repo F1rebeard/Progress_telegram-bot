@@ -9,6 +9,7 @@ from aiogram.utils.exceptions import ChatNotFound
 
 
 from create_bot import bot, db
+from config.constants import ADMIN_IDS
 from handlers.users import MainMenu
 from keyboards.user_kb import (answer_week,
                                answer_question,
@@ -50,18 +51,19 @@ async def start_poll_for_time_in_progress():
 
 async def start_questions_about_workout_week():
     """
-    Starts the question sequence about he passing week workouts.
+    Starts the question sequence about the passing week workouts.
     """
     active_users = await db.get_telegram_ids_of_active_users()
     answered_users = await db.get_users_who_answered_about_this_week()
     logging.info(f'{answered_users}')
-    users_to_ask = set(active_users) - set(answered_users)
+    users_to_ask = set(active_users) - set(answered_users) - set(ADMIN_IDS)
+    logging.info(f'Users to ask: {ADMIN_IDS}')
     logging.info(f'Users to ask: {users_to_ask}')
     for user in users_to_ask:
         try:
             await bot.send_message(
                 text='Привет!\n\n'
-                     'Ответь пожалуйста на несколько вопросов о тренировках'
+                     'Ответь пожалуйста на несколько вопросов о тренировках '
                      'этой недели 🤖',
                 chat_id=user,
                 reply_markup=answer_week

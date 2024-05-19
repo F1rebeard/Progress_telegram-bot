@@ -208,7 +208,7 @@ async def user_axis_value(telegram_id: int,
     user_bio = await user_info(telegram_id)
     if ((telegram_id not in MINKAIF_LVL_ONE_USERS and
             telegram_id not in MINKAIF_LVL_TWO_USERS) and
-            user_bio == 'Минкайфа'):
+            user_bio[0] == 'Минкайфа'):
         return None
     else:
         for movement_data in characteristics_ranges:

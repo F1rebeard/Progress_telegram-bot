@@ -127,12 +127,14 @@ async def months_in_project_histogram():
     plt.ylabel('Кол-во атлетов')
     plt.title('Гистограмма длительности тренировок в "Прогрессе"')
 
-    # Set x-axis ticks and grid
-    plt.xticks(range(min(months), max(months) + 1))
-    plt.grid(axis='both', linestyle='-', which='both', linewidth=3)
+    # Check if months is not empty
+    if months:
+        # Set x-axis ticks and grid
+        plt.xticks(range(min(months), max(months) + 1, 3))
+        plt.grid(axis='both', linestyle='-', which='both', linewidth=3)
 
-    # Set y-axis ticks and grid
-    plt.yticks(range(max(max(male_values), max(female_values)) + 1))
+        # Set y-axis ticks and grid
+        plt.yticks(range(max(max(male_values), max(female_values)) + 1))
     plt.savefig(f'media/time_in_project_hist.png')
     plt.close()
 
@@ -218,11 +220,6 @@ async def user_weekly_dynamic_graph(telegram_id: int):
     """
     data = await db.get_weekly_dynamic_for_user(telegram_id=telegram_id)
 
-    locale.setlocale(
-        category=locale.LC_ALL,
-        locale="Russian"
-    )
-
     weeks = [row[0] for row in data]
     results = [row[2] for row in data]
     scaling = [row[3] for row in data]
@@ -230,6 +227,7 @@ async def user_weekly_dynamic_graph(telegram_id: int):
 
     start_date = datetime(2024, 4, 1)
     dates = [start_date + timedelta(days=7 * (week - 1)) for week in weeks]
+    plt.style.use('cyberpunk')
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
