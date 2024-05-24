@@ -1,10 +1,11 @@
-# Telegram-бот для кроссфит сообщества "Прогресс"
+# Telegram-бот для кроссфит проекта "Прогресс"
 
 ## О боте
 Бот для экосистемы взаимодоействия пользователей
-с программой тренировок "Прогресс".
+с программой тренировок [Прогресс](https://progress.serkov.pro/) и ["Старт"](https://start.serkov.pro/).
 
 ## Технологический стек
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![Sqlite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
