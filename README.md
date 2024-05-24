@@ -2,7 +2,7 @@
 
 ## О боте
 Бот для экосистемы взаимодоействия пользователей
-с программой тренировок [Прогресс](https://progress.serkov.pro/) и ["Старт"](https://start.serkov.pro/).
+с программой тренировок ["Прогресс"](https://progress.serkov.pro/) и ["Старт"](https://start.serkov.pro/).
 
 ## Технологический стек
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
