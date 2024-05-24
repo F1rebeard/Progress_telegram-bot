@@ -24,7 +24,7 @@ from graphic.graphic import (characteristics_graphic,
                              months_in_project_histogram
                              )
 from handlers.registration import Registration
-from keyboards.admin_kb import admin_keyboard
+from keyboards.admin_kb import admin_keyboard, curator_keyboard
 from keyboards.athlete_tests_kb import tests_inline_keyboard
 from keyboards.profile_kb import categories_keyboard
 from keyboards.user_kb import (user_keyboard,
@@ -111,12 +111,22 @@ async def start_bot(message: types.Message, state: FSMContext):
                 )
 
             else:
-                await message.answer(
-                    f'С возвращением!\n\n Твоя подписка заканчивается в '
-                    f'течении {days_till_payment} дней. Отличных тренировок и '
-                    f'прогресса в твоих результатах 🤙💪',
-                    reply_markup=user_keyboard
-                )
+                if db.is_curator(telegram_id):
+                    await message.answer(
+                        'Привет!\n\n Твоя подписка заканчивается в '
+                        f'течении {days_till_payment} дней.'
+                        f' Отличных тренировок и '
+                        f'прогресса в твоих результатах 🤙💪',
+                        reply_markup=curator_keyboard
+                    )
+                else:
+                    await message.answer(
+                        f'С возвращением!\n\n Твоя подписка заканчивается в '
+                        f'течении {days_till_payment} дней. '
+                        f'Отличных тренировок и '
+                        f'прогресса в твоих результатах 🤙💪',
+                        reply_markup=user_keyboard
+                    )
         except ValueError or TypeError:
             await message.answer('Нету данных о подписке!')
     elif await db.user_payed_not_registered(telegram_id):

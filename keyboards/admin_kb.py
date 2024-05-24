@@ -11,6 +11,7 @@ ACTIONS_WITH_CHOSEN_USERS = (
     ('⚛ Сменить уровень', 'change_level_of_user'),
     ('🆗 Добавить подписку', 'add_subscription'),
     ('🥶 Заморозить подписку', 'freeze_subscription'),
+    ('🦉 Назначить куратора', 'add_curator'),
     ('📈 Еженедельная динамика', 'weekly_dynamic'),
     ('🤬 Отменить подписку', 'cancel_subscription'),
     ('💬 Отправить сообщение', 'send_message_via_bot'),
@@ -35,6 +36,9 @@ subscription_button = KeyboardButton('⏳🈂 Подписка')
 # admin buttons
 admin_button = KeyboardButton('🧙 Aдминка')
 
+# curator buttons
+curator_button = KeyboardButton('👥 Мои атлеты')
+
 # admin menu buttons
 users_button = KeyboardButton('👫 Операции с атлетами')
 inactive_users_button = KeyboardButton('👥 Неактивные пользователи')
@@ -49,6 +53,15 @@ back_button = KeyboardButton('⬅ Назад')
 
 admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
     admin_button,
+    workout_button,
+    tests_button,
+    profile_button,
+    excercises_button,
+    abbreviations_button,
+)
+
+curator_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
+    curator_button,
     workout_button,
     tests_button,
     profile_button,

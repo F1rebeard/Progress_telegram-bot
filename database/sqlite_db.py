@@ -1466,6 +1466,18 @@ class Database:
             ).fetchall()
         return users_info
 
+    async def get_curators_info(self):
+        """
+        Get data for curators.
+        """
+        curators = self.cursor.execute(
+            "SELECT telegram_id, first_name, last_name, username, my_athletes "
+            "FROM users "
+            "WHERE is_curator IS TRUE"
+        ).fetchall()
+        logging.info(f'curators')
+        return curators
+
     async def get_user_username(self, telegram_id: int):
         """
         Checks user username
@@ -1706,3 +1718,16 @@ class Database:
             ).fetchall()
         logging.info(f'Дата для уровня {level} получена')
         return level_data
+
+    async def is_curator(self, telegram_id):
+        """
+        Check if user is curator.
+        """
+        with self.connection:
+            is_curator = self.cursor.execute(
+                "SELECT is_curator "
+                "FROM users "
+                "WHERE telegram_id = ?", (telegram_id,)
+            ).fetchone()
+        logging.info(f'Куратор: {is_curator[0]}')
+        return is_curator[0]

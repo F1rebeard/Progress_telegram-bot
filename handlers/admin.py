@@ -53,6 +53,7 @@ class UsersInfo(StatesGroup):
     freeze_subscription = State()
     unfreeze_subscription = State()
     add_new_user = State()
+    add_curator = State()
 
 
 async def backup_database():
@@ -227,6 +228,11 @@ async def show_administration_tools(message: types.Message,
             reply_markup=admin_tools
         )
 
+
+async def show_curator_athletes(message: types.Message, state: FSMContext):
+    if db.is_curator(message.from_user.id):
+        pass
+    # cписок с со своими атлетами:
 
 async def find_users_by_names(message: types.Message, state: FSMContext):
     """
@@ -615,6 +621,13 @@ async def actions_under_user(query: types.CallbackQuery,
                 caption='Еженедельная динамика для выбранного пользователя'
             )
             os.remove(f'media/{data["user_id"]}_weekly.png')
+        elif query.data == 'add_curator':
+            await state.set_state(UsersInfo.add_curator)
+            await query.message.edit_text(
+                f'Выбери куратора для для @{data["nickname"]} '
+                f'{data["first_name"]} {data["last_name"]}',
+                reply_markup=
+            )
             await query.answer()
 
 async def change_level_of_user(query: types.CallbackQuery, state: FSMContext):
