@@ -10,7 +10,7 @@ from aiogram.utils.exceptions import ChatNotFound
 
 from dotenv import load_dotenv
 
-from config.constants import ADMIN_IDS
+from config.constants import ADMIN_IDS, BACKUP_ID
 from graphic.graphic import (user_weekly_dynamic_graph,
                              levels_weekly_dynamic_graph,
                              get_users_ages_and_mean_ages,
@@ -53,6 +53,35 @@ class UsersInfo(StatesGroup):
     freeze_subscription = State()
     unfreeze_subscription = State()
     add_new_user = State()
+
+
+async def backup_database():
+    """
+    Makes a backup of database.
+    """
+    db_path = 'database/progress.db'
+    if os.path.exists(db_path):
+        db_backup = f'{db_path}.bak'
+        try:
+            # Copy the database file to create a backup
+            os.makedirs(os.path.dirname(db_backup), exist_ok=True)
+            with open(db_path, 'rb') as src, open(db_backup, 'wb') as dst:
+                dst.write(src.read())
+
+            # Send the backup file via Telegram
+            with open(db_backup, 'rb') as file:
+                await bot.send_document(chat_id=BACKUP_ID,
+                                        document=types.InputFile(
+                                            file,
+                                            filename='database_backup.db'))
+        except Exception as e:
+            await bot.send_message(
+                chat_id=BACKUP_ID,
+                text=f"Error creating database backup: {str(e)}")
+    else:
+        await bot.send_message(
+            chat_id=BACKUP_ID,
+            text="Database file not found.")
 
 
 async def send_birthday_users():

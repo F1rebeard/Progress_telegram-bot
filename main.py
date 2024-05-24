@@ -12,7 +12,7 @@ from handlers import (users,
                       aerobic_capacity, gymnastics, metcons, freeze)
 from handlers.payment import subscription_warnings
 from handlers.freeze import freeze_warnings
-from handlers.admin import send_birthday_users
+from handlers.admin import send_birthday_users, backup_database
 from handlers.questions import (start_questions_about_workout_week,
                                 start_poll_for_time_in_progress)
 from workout_clr import workout_calendar
@@ -39,11 +39,12 @@ workout_calendar.register_workout_handelrs(dp)
 
 
 async def scheduler():
-    aioschedule.every(24).hours.do(subscription_warnings)
+    aioschedule.every(1).day.at("09:15").do(backup_database)
+    aioschedule.every(1).day.at("15:00").do(send_birthday_users)
+    aioschedule.every(1).day.at("18:15").do(subscription_warnings)
+    aioschedule.every(1).day.at("18:15").do(freeze_warnings)
     aioschedule.every(1).day.at("20:10").do(start_poll_for_time_in_progress)
     aioschedule.every(1).day.at("20:30").do(start_poll_for_time_in_progress)
-    aioschedule.every(24).hours.do(freeze_warnings)
-    aioschedule.every(1).day.at("15:00").do(send_birthday_users)
 
     # Schedule the task to run on Saturdays
     aioschedule.every().saturday.at("11:10").do(
@@ -67,7 +68,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    scheduler_task = asyncio.create_task(scheduler())
+    await asyncio.create_task(scheduler())
     logging.info('Bot is ONLINE!')
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ load_dotenv()
 
 admin_list = os.getenv("ADMIN_IDS")
 ADMIN_IDS = list(map(int, admin_list.split(', ')))
+BACKUP_ID = int(os.getenv('BACKUP_ID'))
 
 #exercies urls
 RELIZ_URL = 'https://youtube.com/playlist?list=PLz5r9FgBibzZhDp-CT3pBsI5_Lnm9HhL0&si=3rz4K6UzVV24_Y7D'
