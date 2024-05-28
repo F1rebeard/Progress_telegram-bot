@@ -57,7 +57,6 @@ async def start_questions_about_workout_week():
     answered_users = await db.get_users_who_answered_about_this_week()
     logging.info(f'{answered_users}')
     users_to_ask = set(active_users) - set(answered_users) - set(ADMIN_IDS)
-    logging.info(f'Users to ask: {ADMIN_IDS}')
     logging.info(f'Users to ask: {users_to_ask}')
     for user in users_to_ask:
         try:
