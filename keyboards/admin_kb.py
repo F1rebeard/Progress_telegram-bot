@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from aiogram.types import (ReplyKeyboardMarkup,
                            KeyboardButton,
@@ -67,6 +68,7 @@ curator_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(
     profile_button,
     excercises_button,
     abbreviations_button,
+    subscription_button
 )
 
 admin_tools = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(
@@ -78,6 +80,37 @@ admin_tools = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(
     delete_workouts,
     main_menu_button
 )
+
+
+def string_ids_into_list(telegram_ids: str) -> list:
+    """
+    Takes a string with telegram_ids separeted my ',' and return back list
+    of these ids.
+    """
+    if telegram_ids is None or telegram_ids == '':
+        # пустой список
+        return []
+    else:
+        if ',' in telegram_ids:
+            result = [int(x) for x in telegram_ids.split(',') if x != '']
+            return result
+        elif len(telegram_ids) == 1:
+            result = [int(telegram_ids)]
+            return result
+
+
+async def curators_inline_kb(curators_list: list) -> InlineKeyboardMarkup:
+    """
+    Returns inline keyboard with curators.
+    """
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for curator in curators_list:
+        athletes_sum = len(string_ids_into_list(curator[4]))
+        keyboard.add(InlineKeyboardButton(
+            f'{curator[1]} {curator[2]} 🏋🏻={athletes_sum}',
+            callback_data=f'cura_{curator[0]}'
+        ))
+    return keyboard
 
 
 async def users_info_inline_kb(chosen_users: list) -> InlineKeyboardMarkup:
@@ -112,3 +145,27 @@ async def users_info_inline_kb(chosen_users: list) -> InlineKeyboardMarkup:
             )
     return keyboard
 
+
+async def inactive_users_inline_kb(chosen_users: list) -> InlineKeyboardMarkup:
+    """
+    :param chosen_users:
+    :return:
+    """
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    # user_info[0] - telegram_id
+    # user_info[1] - first_name
+    # user_info[2] - last_name
+    # user_info[3] - level
+    # user_info[4] - subscription_date
+    for user_info in chosen_users:
+        sub_date = datetime.strptime(user_info[4], "%Y-%m-%d").date()
+        days_till_end = (sub_date - datetime.now().date()).days
+        if days_till_end > -30:
+            keyboard.add(
+                InlineKeyboardButton(
+                    f'{user_info[1]} {user_info[2]} '
+                    f'📆❌= {days_till_end}',
+                    callback_data=user_info[0]
+                )
+            )
+    return keyboard

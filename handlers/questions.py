@@ -5,7 +5,7 @@ from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.exceptions import ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked
 
 
 from create_bot import bot, db
@@ -45,7 +45,7 @@ async def start_poll_for_time_in_progress():
                      ' по нашему проекту. Ответь пожалуйста на один вопрос 🥹',
                 reply_markup=answer_question
             )
-        except ChatNotFound:
+        except ChatNotFound or BotBlocked:
             logging.info(f'Нету чата с пользователем {user}')
 
 
@@ -68,7 +68,7 @@ async def start_questions_about_workout_week():
                 chat_id=user,
                 reply_markup=answer_week
             )
-        except ChatNotFound:
+        except ChatNotFound or BotBlocked:
             logging.info(f'Чата с пользователем {user} нет!')
 
 

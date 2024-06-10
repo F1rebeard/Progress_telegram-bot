@@ -1452,6 +1452,19 @@ class Database:
             ).fetchall()
         return users_info
 
+    async def get_athletes_info(self, user_ids: list):
+        placeholders = ', '.join('?' * len(user_ids))
+        logging.info(f'PLACEHOLDERS ARE: {placeholders}')
+        with self.connection:
+            athletes_info = self.cursor.execute(
+                f"""
+                SELECT telegram_id, first_name, last_name, level, 
+                subscribtion_date, username, registration_date, birthdate 
+                FROM users 
+                WHERE telegram_id IN ({placeholders})""", (*user_ids,)
+            ).fetchall()
+        return athletes_info
+
     async def get_inactive_users_info(self):
         """
         Get list of inactive user info.
@@ -1463,6 +1476,7 @@ class Database:
                 " subscribtion_date, username, registration_date, birthdate"
                 " FROM users "
                 " WHERE sub_status IS FALSE"
+                " ORDER BY subscribtion_date DESC"
             ).fetchall()
         return users_info
 
@@ -1470,13 +1484,58 @@ class Database:
         """
         Get data for curators.
         """
-        curators = self.cursor.execute(
-            "SELECT telegram_id, first_name, last_name, username, my_athletes "
-            "FROM users "
-            "WHERE is_curator IS TRUE"
-        ).fetchall()
+        with self.connection:
+            curators = self.cursor.execute(
+                "SELECT telegram_id, first_name, last_name, username, my_athletes "
+                "FROM users "
+                "WHERE is_curator IS TRUE"
+            ).fetchall()
         logging.info(f'curators')
         return curators
+
+    async def get_curator_by_id(self, telegram_id: int):
+        """
+        Get curators info by it's id.
+        """
+        with self.connection:
+            try:
+                chosen_curator = self.cursor.execute(
+                    "SELECT telegram_id, first_name,"
+                    " last_name, username, my_athletes "
+                    "FROM users "
+                    "WHERE telegram_id = ? AND is_curator IS TRUE", (telegram_id,)
+                ).fetchone()
+                return chosen_curator
+            except ValueError:
+                logging.info('Пользователь не найдет, или не является куратором')
+
+    async def add_new_curator_to_chosen_athlete(self,
+                                                curator_to_add: int,
+                                                user_id: int,
+                                                ) -> None:
+        """
+        Adds selected curators telegram_id to chosen athlete.
+        """
+        with self.connection:
+            self.cursor.execute(
+                "UPDATE users SET my_curator = ? "
+                "WHERE telegram_id = ?", (curator_to_add,
+                                          user_id)
+            )
+
+    async def add_new_athlete_to_chosen_curator(self,
+                                                athlete_to_add: int,
+                                                curator_id: int):
+        """
+        Adds new athlete to chosen curator to "my_athletes" column.
+        """
+        new_athlete = str(athlete_to_add) + ','
+        with self.connection:
+            self.cursor.execute(
+                "UPDATE users "
+                "SET my_athletes = ? "
+                "WHERE telegram_id = ?", (new_athlete, curator_id)
+            )
 
     async def get_user_username(self, telegram_id: int):
         """

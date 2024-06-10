@@ -18,12 +18,14 @@ from graphic.graphic import (user_weekly_dynamic_graph,
                              months_in_project_histogram
                              )
 from keyboards.admin_kb import (admin_tools,
+                                string_ids_into_list,
+                                inactive_users_inline_kb,
+                                curators_inline_kb,
                                 users_info_inline_kb,
                                 user_action_inline_kb,
                                 yes_or_no_inline_kb)
-from keyboards.user_kb import choose_kb, question_1
+from keyboards.user_kb import choose_kb
 from handlers.users import back_to_main_menu
-from handlers.questions import Questions
 from database.workouts_from_sheet import (
     get_data_from_google_sheet,
     delete_workouts_from_database,
@@ -40,6 +42,7 @@ SHEET_TITLE = os.getenv('SHEET_TITLE')
 class UsersInfo(StatesGroup):
     find_users = State()
     user_management = State()
+    athletes_management = State()
     inactive_user_managment = State()
     actions_on_user = State()
     change_level = State()
@@ -228,11 +231,6 @@ async def show_administration_tools(message: types.Message,
             reply_markup=admin_tools
         )
 
-
-async def show_curator_athletes(message: types.Message, state: FSMContext):
-    if db.is_curator(message.from_user.id):
-        pass
-    # cписок с со своими атлетами:
 
 async def find_users_by_names(message: types.Message, state: FSMContext):
     """
@@ -449,7 +447,7 @@ async def get_list_of_inactive_users(message: types.Message,
     """
     await message.answer(
         'Список неактивных пользователей:',
-        reply_markup=await users_info_inline_kb(
+        reply_markup=await inactive_users_inline_kb(
             await db.get_inactive_users_info()
         )
     )
@@ -626,9 +624,106 @@ async def actions_under_user(query: types.CallbackQuery,
             await query.message.edit_text(
                 f'Выбери куратора для для @{data["nickname"]} '
                 f'{data["first_name"]} {data["last_name"]}',
-                reply_markup=
+                reply_markup=await curators_inline_kb(
+                    await db.get_curators_info()
+                )
             )
             await query.answer()
+
+
+async def select_curator_for_athlete(query: types.CallbackQuery,
+                                     state: FSMContext) -> None:
+    """
+    Selects curator for chosen user and update this info to db.
+    """
+    if query.data.startswith('cura_'):
+        chosen_curator = int(query.data.split('_')[1])
+        logging.info(f'Chosen curator id: {chosen_curator}')
+        async with state.proxy() as data:
+            # adding curator to chosen user
+            await db.add_new_curator_to_chosen_athlete(
+                curator_to_add=chosen_curator,
+                user_id=int(data['user_id'])
+            )
+            # adding new athlete to curators list of athletes
+            await db.add_new_athlete_to_chosen_curator(
+                athlete_to_add=int(data['user_id']),
+                curator_id=chosen_curator
+            )
+            await query.message.edit_text(
+                f'Куратор для @{data["nickname"]} '
+                f'{data["first_name"]} {data["last_name"]} добавлен!'
+            )
+            curator_info = await db.get_curator_by_id(
+                telegram_id=chosen_curator
+            )
+            # sending message to user about his new curator
+            await bot.send_message(
+                chat_id=data['user_id'],
+                text=f'Привет! Твой новый куратор:\n'
+                     f'@{curator_info[3]}\n'
+                     f'{curator_info[1]} {curator_info[2]}\n\n'
+                     f'Скоро он свяжется с тобой 😊'
+            )
+            # sending message to curator about new athlete
+            await bot.send_message(
+                chat_id=chosen_curator,
+                text=f'Привет! У тебя новый атлет для кураторства:\n'
+                     f'@{data["nickname"]}\n'
+                     f'{data["first_name"]} {data["last_name"]}\n\n'
+                     f'Свяжись с ним, как будет возможность, пожалуйста!'
+            )
+            await state.finish()
+            await query.answer()
+
+
+async def show_curator_athletes(message: types.Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    if await db.is_curator(telegram_id):
+        # cписок с со своими атлетами:
+        curator_info = await db.get_curator_by_id(telegram_id=telegram_id)
+        curator_athletes = string_ids_into_list(curator_info[4])
+        athletes_info = await db.get_athletes_info(curator_athletes)
+        await message.answer(
+            'Вот кого удалось найти:',
+            reply_markup=await users_info_inline_kb(athletes_info)
+        )
+        await state.set_state(UsersInfo.athletes_management)
+
+
+async def athletes_management_menu(query: types.CallbackQuery,
+                                   state: FSMContext):
+    """
+    Choses an athlete from the list and pops up a managmenet menu for it.
+    """
+    telegram_id = query.from_user.id
+    curator_info = await db.get_curator_by_id(telegram_id=telegram_id)
+    curator_athletes = string_ids_into_list(curator_info[4])
+    athletes_dict = await users_management(
+        await db.get_athletes_info(curator_athletes)
+    )
+    if int(query.data) in curator_athletes:
+        user_data_by_id = athletes_dict.get(int(query.data))[0]
+        async with state.proxy() as data:
+            data['user_id'] = int(query.data)
+            data['nickname'] = user_data_by_id[4]
+            data['first_name'] = user_data_by_id[0]
+            data['last_name'] = user_data_by_id[1]
+        await state.set_state(UsersInfo.actions_on_user)
+        await bot.edit_message_text(
+            text=f'Вы выбрали:\n@{user_data_by_id[4]}\n'
+                 f'{user_data_by_id[0]} {user_data_by_id[1]}\n'
+                 f'Уровень - {user_data_by_id[2]}\n'
+                 f'В прогрессе с {user_data_by_id[5]}\n\n'
+                 f'Действия:',
+            message_id=query.message.message_id,
+            chat_id=query.message.chat.id,
+            # curators inline kb!
+            reply_markup=user_action_inline_kb
+        )
+        await query.answer()
+
+
 
 async def change_level_of_user(query: types.CallbackQuery, state: FSMContext):
     """
@@ -810,10 +905,22 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_any_workout_for_admin,
                                        lambda query: True,
                                        state=ChosenDateData.for_admin)
+    dp.register_callback_query_handler(athletes_management_menu,
+                                       lambda query: True,
+                                       state=UsersInfo.athletes_management)
+    dp.register_callback_query_handler(select_curator_for_athlete,
+                                       lambda query: query.data.startswith('cura'),
+                                       state=UsersInfo.add_curator)
     dp.register_message_handler(send_message_to_user_via_bot,
                                 state=UsersInfo.send_message_via_bot)
     dp.register_message_handler(add_subscription_to_user,
                                 state=UsersInfo.add_subscription)
+    dp.register_message_handler(get_list_of_users,
+                                state=UsersInfo.find_users)
+    dp.register_message_handler(approve_sending_message_to_all,
+                                state=UsersInfo.send_to_all_via_bot)
+    dp.register_message_handler(insert_new_user_into_database,
+                                state=UsersInfo.add_new_user)
     dp.register_message_handler(show_administration_tools,
                                 text='🧙 Aдминка',
                                 state='*')
@@ -823,8 +930,6 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_message_handler(add_new_user,
                                 text='👤 Добавить нового пользователя',
                                 state='*')
-    dp.register_message_handler(insert_new_user_into_database,
-                                state=UsersInfo.add_new_user)
     dp.register_message_handler(get_list_of_inactive_users,
                                 text='👥 Неактивные пользователи',
                                 state='*')
@@ -837,9 +942,9 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_message_handler(message_to_all_via_bot,
                                 text='📢 Сообщение всем',
                                 state='*')
-    dp.register_message_handler(approve_sending_message_to_all,
-                                state=UsersInfo.send_to_all_via_bot)
-    dp.register_message_handler(get_list_of_users,
-                                state=UsersInfo.find_users)
-    dp.register_message_handler(back_to_main_menu, text='⏪ Главное меню',
+    dp.register_message_handler(back_to_main_menu,
+                                text='⏪ Главное меню',
                                 state="*")
+    dp.register_message_handler(show_curator_athletes,
+                                text='👥 Мои атлеты',
+                                state='*')

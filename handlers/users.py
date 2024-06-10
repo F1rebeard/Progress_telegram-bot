@@ -111,7 +111,7 @@ async def start_bot(message: types.Message, state: FSMContext):
                 )
 
             else:
-                if db.is_curator(telegram_id):
+                if await db.is_curator(telegram_id):
                     await message.answer(
                         'Привет!\n\n Твоя подписка заканчивается в '
                         f'течении {days_till_payment} дней.'

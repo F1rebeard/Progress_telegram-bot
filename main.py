@@ -68,7 +68,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    await asyncio.create_task(scheduler())
+    scheluder = asyncio.create_task(scheduler())
     logging.info('Bot is ONLINE!')
 
 if __name__ == '__main__':
