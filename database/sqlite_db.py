@@ -1723,8 +1723,12 @@ class Database:
                                        user_id: int,
                                        state: FSMContext):
         today = datetime.now().date()
+        weekday = today.weekday()
         # Get the week number and year
-        week_number = int(today.isocalendar()[1])
+        if weekday in [5, 6]:
+            week_number = int(today.isocalendar()[1])
+        else:
+            week_number = int(today.isocalendar()[1]) - 1
         year = int(today.year)
         logging.info(f'Current year: {year} and week nmb {week_number}')
         user_level = await self.get_user_level(user_id)
