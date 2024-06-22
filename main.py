@@ -3,6 +3,7 @@ import asyncio
 import aioschedule
 
 from aiogram import executor
+from datetime import datetime, timedelta
 
 from create_bot import dp
 from handlers import (users,
@@ -43,32 +44,28 @@ async def scheduler():
     aioschedule.every(1).day.at("15:00").do(send_birthday_users)
     aioschedule.every(1).day.at("18:15").do(subscription_warnings)
     aioschedule.every(1).day.at("18:15").do(freeze_warnings)
-    aioschedule.every(1).day.at("20:10").do(start_poll_for_time_in_progress)
-    aioschedule.every(1).day.at("20:30").do(start_poll_for_time_in_progress)
+    # aioschedule.every(1).day.at("20:10").do(start_poll_for_time_in_progress)
+    # aioschedule.every(1).day.at("20:30").do(start_poll_for_time_in_progress)
 
-    # Schedule the task to run on Saturdays
-    aioschedule.every().saturday.at("11:10").do(
-        start_questions_about_workout_week)
-    aioschedule.every().saturday.at("16:10").do(
-        start_questions_about_workout_week)
-    aioschedule.every().saturday.at("20:45").do(
-        start_questions_about_workout_week)
-
-    # Schedule the task to run on Sundays
-    aioschedule.every().sunday.at("11:10").do(
-        start_questions_about_workout_week)
-    aioschedule.every().sunday.at("16:10").do(
-        start_questions_about_workout_week)
-    aioschedule.every().sunday.at("20:45").do(
-        start_questions_about_workout_week)
+    weekend_times = ["11:10", "16:10", "20:45"]
+    for day in ['saturday', 'sunday']:
+        for time in weekend_times:
+            getattr(aioschedule.every(), day).at(time).do(
+                start_questions_about_workout_week)
 
     while True:
-        await asyncio.sleep(1)
-        await aioschedule.run_pending()
+        now = datetime.now()
+        next_minute = (now + timedelta(minutes=1)).replace(second=0,
+                                                           microsecond=0)
+        await asyncio.sleep((next_minute - now).total_seconds())
+        try:
+            await aioschedule.run_pending()
+        except Exception as e:
+            logging.error(f"Error in scheduler: {e}")
 
 
 async def on_startup(_):
-    scheluder = asyncio.create_task(scheduler())
+    asyncio.create_task(scheduler())
     logging.info('Bot is ONLINE!')
 
 if __name__ == '__main__':

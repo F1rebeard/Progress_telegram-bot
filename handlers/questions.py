@@ -1,11 +1,13 @@
 import logging
 import re
+import asyncio
+
 from datetime import datetime
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked, RetryAfter
 
 
 from create_bot import bot, db
@@ -49,6 +51,34 @@ async def start_poll_for_time_in_progress():
             logging.info(f'Нету чата с пользователем {user}')
 
 
+async def send_message_with_retry(telegram_id: int,
+                                  text: str,
+                                  reply_markup,
+                                  max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            await bot.send_message(
+             text=text,
+             chat_id=telegram_id,
+             reply_markup=reply_markup
+            )
+            return True
+        except RetryAfter as e:
+            if attempt == max_retries - 1:
+                logging.error(
+                 f'Failed to send message to user {telegram_id} '
+                 f'after {max_retries} attempts'
+                )
+                return False
+            await asyncio.sleep(e.timeout)
+        except (ChatNotFound, BotBlocked):
+            logging.error(f'No chat with {telegram_id} user!')
+            return False
+        except Exception as e:
+            logging.error(f'Error sending message to user {telegram_id}: {e} ')
+            return False
+
+
 async def start_questions_about_workout_week():
     """
     Starts the question sequence about the passing week workouts.
@@ -56,19 +86,21 @@ async def start_questions_about_workout_week():
     active_users = await db.get_telegram_ids_of_active_users()
     answered_users = await db.get_users_who_answered_about_this_week()
     logging.info(f'{answered_users}')
+
     users_to_ask = set(active_users) - set(answered_users) - set(ADMIN_IDS)
     logging.info(f'Users to ask: {users_to_ask}')
+
+    message_text = ('Привет!\n\n'
+                    'Ответь пожалуйста на несколько вопросов о тренировках '
+                    'этой недели 🤖')
     for user in users_to_ask:
-        try:
-            await bot.send_message(
-                text='Привет!\n\n'
-                     'Ответь пожалуйста на несколько вопросов о тренировках '
-                     'этой недели 🤖',
-                chat_id=user,
-                reply_markup=answer_week
-            )
-        except ChatNotFound or BotBlocked:
-            logging.info(f'Чата с пользователем {user} нет!')
+        success = await send_message_with_retry(user, message_text, answer_week)
+        if success:
+            # Small delay between successful sends
+            await asyncio.sleep(0.1)
+        else:
+            # Longer delay after failed attempts
+            await asyncio.sleep(1)
 
 
 async def ask_about_week_self_results(query: types.CallbackQuery,
