@@ -454,7 +454,7 @@ async def subscription_warnings():
                 await bot.send_message(telegram_id,
                                        'Твоя подписка заканчивается сегодня!\n\n'
                                        'Не забудь продлить 🤖')
-            except ChatNotFound:
+            except ChatNotFound or BotBlocked:
                 logging.info('Нету чата с этим пользователем')
             continue
         for telegram_id in ending_tomorrow:
