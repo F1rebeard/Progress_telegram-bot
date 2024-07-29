@@ -137,7 +137,7 @@ async def unfreeze_subscription(query: types.CallbackQuery,
             return
         logging.info('Cancelling state %r', current_state)
         await state.finish()
-        await query.message.answer('Отменил', reply_markup=admin_tools)
+        await query.message.answer('Отменил', reply_markup=unfreeze_kb)
         await query.answer()
 
 
